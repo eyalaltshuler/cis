@@ -22,15 +22,9 @@ def alg(sc, datasetRdd, threshold, epsilon):
         candidates = _expand(filteredNextLevel, sample)
 
     return res
-    
-
-def _expand(candidates, sample):
-    return set()
-
 
 def _calcSampleSize(threshod):
     return 6
-
 
 def _assignTasks(candidates, workersNeeded):
     return dict()

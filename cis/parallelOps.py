@@ -8,19 +8,6 @@ def cis(dataset, itemset):
     filteredDataset = dataset.filter(filterFunc)
     return filteredDataset.reduce(lambda a,b: a.intersection(b))
 
-def cisBatch(dataset, tasksDict):
-    ''' 
-    Assumes that dataset is an RDD that can be quried for its partitions number
-    tasksDict maps between workers to their tasks
-    '''
-    def partitionFunc(i, partitionIter):
-        data = []
-        for element in partitionIter:
-            data.append(element)
-        projected = filter(lambda t: tasksDict[i].issubset(t), data)
-        yield reduce(lambda a,b: a.intersection(b), projected)
-
-    return dataset.mapPartitionsWithIndex(partitionFunc, preservesPartitioning=True).collect()
 
 def sample(dataset, datasetSize, fraction):
     return dataset.sample(False, fraction).collect()
