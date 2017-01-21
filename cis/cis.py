@@ -2,37 +2,7 @@ import os
 import csv
 import optparse
 import pyspark
-
-
-class Setup(object):
-    def __init__(self, inputData, numOfWorkers, itemSpaceSize):
-        self._n = itemSpaceSize
-        self._input = self._parse(inputData)
-        self._numOfWorkers = numOfWorkers
-
-    def estimateSetCardinality(self, s):
-        return len(s) * self._numOfWorkers
-
-    def estimateCis(self):
-        pass
-
-    def calculateCis(self):
-        pass
-
-    def getChildren(self, s):
-        if len(s) == self._n:
-            return
-        l = list(s)
-        l.sort()
-        minItem = l.pop(0)
-        if not l:
-            for i in xrange(minItem):
-                yield set([i, minItem])
-        else:
-            tmp = l
-            secondSmallestItem = l.pop(0)
-            for i in xrange(minItem, secondSmallestItem):
-                yield set([minItem, i] + tmp)
+import math
 
 
 def workerMap(v):
@@ -53,6 +23,23 @@ def paarllelClosure(v):
 
 def closure(dataset):
     return reduce(set.intersection, dataset)
+
+
+ALPHA = 0.1
+
+def requiredSampleSize(n, pSize, epsilon=0.1):
+    return (2 * n * math.log(1 / epsilon)) / (pSize * (DELTA ** 2) * (1 - ALPHA))
+
+
+def requiredNumOfWorkers(n, pSize, workersNum, epsilon=0.1):
+    workerSize = n / workersNum
+    sampleSize = requiredSampleSize(n, pSize, epsilon)
+    return int(math.ceil(sampleSize / workerSize))
+
+
+def workersRequired(n, workersNum, threshold, epsilon):
+    newThreshold = threshold / ALPHA
+    return requiredNumOfWorkers(n, newThreshold, workersNum, epsilon)
 
 
 if __name__=="__main__":
