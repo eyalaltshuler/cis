@@ -4,10 +4,7 @@ unittest:
 	PYTHONPATH=$(PYTHONPATH):./cis py.test -s
 
 singletest:
-	PYTHONPATH=$(PYTHONPATH):./cis py.test -k $(TEST)
-
-coverage:
-	PYTHONPATH=$(PYTHONPATH):./cis py.test --cov=/home/eyal/work/cis/src
+	PYTHONPATH=$(PYTHONPATH):./cis nose2 -s tests/ut $(TEST)
 
 clean:
 	find . -name '*.pyc' -delete
