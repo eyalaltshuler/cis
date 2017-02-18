@@ -1,13 +1,13 @@
 all: unittest coverage
 
 unittest:
-	PYTHONPATH=$(PYTHONPATH):/home/eyal/work/cis/src py.test -s
+	PYTHONPATH=$(PYTHONPATH):./cis py.test -s
 
 singletest:
-	PYTHONPATH=$(PYTHONPATH):/home/eyal/work/cis/src py.test -k $(TEST)
+	PYTHONPATH=$(PYTHONPATH):./cis py.test -k $(TEST)
 
 coverage:
-	PYTHONPATH=$(PYTHONPATH):/home/eyal/work/cis/src py.test --cov=/home/eyal/work/cis/src
+	PYTHONPATH=$(PYTHONPATH):./cis py.test --cov=/home/eyal/work/cis/src
 
 clean:
 	find . -name '*.pyc' -delete
