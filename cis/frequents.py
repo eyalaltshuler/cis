@@ -33,9 +33,6 @@ class Frequents(object):
                     new_level.append(new_item_set_node)
         self._topLevel = new_level
 
-    def add_itemset(self, item_set):
-        pass
-
     def expand(self):
         tmp = set()
         result = list()

@@ -12,7 +12,7 @@ def sample(dataset, datasetSize, fraction):
 def cis(dataset, itemset):
     filterFunc = lambda t: itemset.issubset(t)
     filteredDataset = dataset.filter(filterFunc)
-    return filteredDataset.reduce(lambda a,b: a.intersection(b))
+    return filteredDataset.count(), filteredDataset.reduce(lambda a,b: a.intersection(b))
 
 def countElements(dataset):
     counts = dataset.flatMap(lambda t: [(e,1) for e in t]).reduceByKey(lambda a,b: a+b).collect()

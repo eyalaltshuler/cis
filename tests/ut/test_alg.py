@@ -18,17 +18,5 @@ class test_alg(unittest.TestCase):
         epsilon = 0.1
         res = alg.alg(self.rdd, threshold, epsilon)
 
-    def test_alg_empty_rdd(self):
-        pass
-
-    def test_alg_calculate_sample_size(self):
-        pass
-
-    def test_assign_tasks(self):
-        pass
-
-    def test_threshold(self):
-        pass
-
     def tearDown(self):
         self.sc.stop()
