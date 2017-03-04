@@ -1,4 +1,4 @@
-import json
+import pickle
 
 class Frequents(object):
     def __init__(self, singletons):
@@ -21,16 +21,16 @@ class Frequents(object):
         tmp = set()
         for new_item_set_node in candidates:
             for old_node in top_level_nodes:
-                value = hash(str(new_item_set_node.items))
-                if value in tmp:
-                    continue
-                else:
-                    tmp.add(value)
                 if old_node.items.issubset(new_item_set_node.items) and not \
                    new_item_set_node.items.issubset(old_node.items):
                     old_node.children.add(new_item_set_node)
                     new_item_set_node.parents.add(old_node)
-                    new_level.append(new_item_set_node)
+                    value = hash(str(new_item_set_node.items))
+                    if value in tmp:
+                        continue
+                    else:
+                        tmp.add(value)
+                        new_level.append(new_item_set_node)
         self._topLevel = new_level
 
     def expand(self):
@@ -50,11 +50,11 @@ class Frequents(object):
 
     @classmethod
     def save(cls, obj, location):
-        json.dump(obj, location)
+        pickle.dump(obj, location)
 
     @classmethod
     def load(cls, location):
-        return json.loads(open(location))
+        return pickle.loads(open(location))
 
 
 class Node(object):

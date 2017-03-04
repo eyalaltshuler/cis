@@ -20,7 +20,7 @@ def alg_naive(data_set_rdd, threshold):
         for candidate in candidates:
             candidate_size, candidate_cis = utils.cis(data_set_rdd, candidate)
             if candidate_size >= threshold:
-                new_level.append(candidate_cis)
+                new_level.append((candidate_cis, candidate_size))
         cis_tree.add_level(new_level)
         candidates = cis_tree.expand()
 

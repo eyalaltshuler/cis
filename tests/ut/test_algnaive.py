@@ -14,8 +14,7 @@ class test_algnaive(unittest.TestCase):
 
     def test_alg(self):
         threshold = 2
-        epsilon = 0.1
-        res = algnaive.alg_naive(self.rdd, threshold, epsilon)
+        res = algnaive.alg_naive(self.rdd, threshold)
 
     def tearDown(self):
         self.sc.stop()

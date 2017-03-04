@@ -1,46 +1,44 @@
 from pyspark import SparkContext, SparkConf
 from cis import apriori
 
-threshold = 100
-num_of_partitions = 10
 
-def support(s):
-    pass
-
-
-def count_candidates(x):
-    pass
-
-
-def secondReduceFunc(a ,b):
-    return a+b
+def map_apriori(threshold):
+    def apriori_func(iter):
+        data = []
+        for element in iter:
+            data.append(element)
+        _, supportData = apriori(data, threshold)
+        for k, v in supportData.iteritems():
+            yield (k, v)
+    return apriori_func
 
 
-def secondMapFunc(x):
-    count_candidates(x)
+def mapCandidatesCreator(candidates):
+    def mapCountCandidates(iter):
+        data = []
+        for element in iter:
+            data.append(set(element))
+        for candidate in candidates:
+            filtered = filter(lambda a: candidate.issubset(a))
+            yield (candidate, len(filtered))
+    return mapCountCandidates
 
 
-def firstReduceFunc(a, b):
-    return a.union(b)
+def son(dataset, threshold):
+    factorized_threshold = threshold / dataset.getNumPartitions()
 
+    mapFunc = map_apriori(factorized_threshold)
+    supports = dataset.mapPartitions(mapFunc)
+    maximal_supports = supports.reduceByKey(lambda a,b: max(a,b))
+    filtered_maximal_supports = maximal_supports.filter(lambda x: x[1] >= factorized_threshold)
+    candidates = filtered_maximal_supports.map(lambda x: x[0]).collect()
 
-def firstMapFunc(x):
-    L, supportData = apriori.apriori(x, threshold / num_of_partitions)
-    return L
+    map_candidates_func = mapCandidatesCreator(candidates)
+    frequents = dataset.mapPartitions(map_candidates_func).\
+                        reduceByKey(lambda a,b: a+b).\
+                        filter(lambda a: a[1] >= threshold).collect()
 
-
-def son(dataset):
-    sc = SparkContext()
-    sc.parallelize(dataset)
-
-    first_map = sc.map(firstMapFunc)
-    first_reduce = first_map.reduce(firstReduceFunc)
-    second_map = first_reduce.secondMap(secondMapFunc)
-    second_reduce = second_map.reduce(secondReduceFunc)
-    result = second_reduce.collect()
-    for r in result:
-        if support(r) < threshold:
-            result.remove(r)
+    return frequents
 
 if __name__ == "__main__":
     son()

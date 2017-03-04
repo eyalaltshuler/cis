@@ -111,6 +111,8 @@ if __name__ == "__main__":
     dataSet=loadDataSet()
     L,supportData=apriori(dataSet,0.7)
     brl=generateRules(L, supportData,0.7)
+    import ipdb
+    ipdb.set_trace()
     print 'brl:',brl
 
 
