@@ -3,7 +3,7 @@ import mock
 import random
 import pyspark
 
-from cis import alg-son
+from cis import son
 from cis import apriori
 
 
@@ -14,9 +14,10 @@ class test_alg(unittest.TestCase):
         self.rdd = self.sc.parallelize(self.transactionSet, 2)
 
     def test_alg(self):
-        threshold = 2
-        epsilon = 0.1
-        res = alg.alg(self.rdd, threshold, epsilon)
+        threshold = 0.4
+        res = son.son(self.rdd, threshold)
+        import ipdb
+        ipdb.set_trace()
 
     def tearDown(self):
         self.sc.stop()
