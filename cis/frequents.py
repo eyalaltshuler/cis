@@ -1,4 +1,8 @@
-import pickle
+import cPickle
+import ast
+import sys
+
+SYS_RECURESION_LIMIT = 10 ** 6
 
 class Frequents(object):
     def __init__(self, singletons):
@@ -31,7 +35,8 @@ class Frequents(object):
                     else:
                         tmp.add(value)
                         new_level.append(new_item_set_node)
-        self._topLevel = new_level
+        if new_level:
+            self._topLevel = new_level
 
     def expand(self):
         tmp = set()
@@ -48,13 +53,32 @@ class Frequents(object):
                         tmp.add(h)
         return result
 
-    @classmethod
-    def save(cls, obj, location):
-        pickle.dump(obj, location)
+    def fastExpand(self, sc, partitions_num):
+        top_level_items = [node.items for node in self._topLevel]
+        single_items = [node.items.copy().pop() for node in self._singletons]
+        top_level_rdd = sc.parallelize(top_level_items, partitions_num)
 
-    @classmethod
-    def load(cls, location):
-        return pickle.loads(open(location))
+        def mapFunc(itemset):
+            to_add = set(single_items).difference(itemset)
+            for element in to_add:
+                s = itemset.copy()
+                s.add(element)
+                yield (str(list(s)), None)
+
+        res = top_level_rdd.flatMap(mapFunc).reduceByKey(lambda a, b: a).map(lambda x: set(ast.literal_eval(x[0]))).collect()
+        return res
+
+    @staticmethod
+    def save(obj, location):
+        sys.setrecursionlimit(SYS_RECURESION_LIMIT)
+        cPickle.dump(obj, file(location, 'w'))
+
+    @staticmethod
+    def load(location):
+        sys.setrecursionlimit(SYS_RECURESION_LIMIT)
+        with open(location) as f:
+            res = cPickle.loads(f.read())
+        return res
 
 
 class Node(object):

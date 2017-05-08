@@ -29,7 +29,7 @@ class Estimator(object):
         return [(set(ast.literal_eval(k)), v) for k,v in tmp]
 
     def estimate_sizes(self, itemset_list):
-        return [(itemset, self._count_itemset_in_sample(itemset)) for itemset in itemset_list]
+        return [(itemset, self._count_itemset_in_sample(itemset)  * self._data_set_size / self._sampleSize) for itemset in itemset_list]
 
     def _count_itemset_in_sample(self, itemset):
-        return len(filter(lambda transaction: itemset.issubset(transaction), self._sample)) * self._sampleSize / self._data_set_size
+        return len(filter(lambda transaction: itemset.issubset(transaction), self._sample))

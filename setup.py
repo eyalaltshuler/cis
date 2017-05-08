@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 setup(
-    name = "HelloWorld",
-    version = "0.1",
+    name = "cis",
+    version = "1.0",
     packages = find_packages(),
 )

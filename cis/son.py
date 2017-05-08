@@ -41,6 +41,3 @@ def son(dataset, threshold):
                         filter(lambda a: (a[1] / float(size)) >= threshold).collect()
 
     return frequents
-
-if __name__ == "__main__":
-    son()

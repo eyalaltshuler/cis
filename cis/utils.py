@@ -4,19 +4,36 @@ import optparse
 import pyspark
 import math
 import logging
+import numpy
+
+NEWLINE = '\n'
+ALPHA = 0.1
+DELTA = 0.1
 
 
 def sample(dataset, datasetSize, fraction):
     return dataset.sample(False, fraction).collect()
+
 
 def cis(dataset, itemset):
     filterFunc = lambda t: itemset.issubset(t)
     filteredDataset = dataset.filter(filterFunc)
     return filteredDataset.count(), filteredDataset.reduce(lambda a,b: a.intersection(b))
 
+
 def countElements(dataset):
     counts = dataset.flatMap(lambda t: [(e,1) for e in t]).reduceByKey(lambda a,b: a+b).collect()
     return {k:v for (k,v) in counts}
+
+
+def countElementsInSample(dataset):
+    res = {}
+    for transaction in dataset:
+        for element in transaction:
+            value = res.get(element)
+            res[element] = value + 1 if value is not None else 1
+    return res
+
 
 def workerMap(v):
     def closure(key, value, P):
@@ -38,19 +55,37 @@ def closure(dataset):
     return reduce(set.intersection, dataset)
 
 
-ALPHA = 0.1
-DELTA = 0.1
-
 def requiredSampleSize(n, pSize, epsilon=0.1):
     return (2 * n * math.log(1 / epsilon)) / (pSize * (DELTA ** 2) * (1 - ALPHA))
 
 
-def requiredNumOfWorkers(numOfTransactions, pSize, workersNum, epsilon=0.1):
+def requiredNumOfWorkers(numOfTransactions, pSize, workersNum, epsilon=0.1, sample=True, one=False):
+    if not sample:
+        return workersNum
+    if one:
+        return 1
     workerSize = numOfTransactions / workersNum
     sampleSize = requiredSampleSize(numOfTransactions, pSize, epsilon)
-    return min(int(math.ceil(sampleSize / workerSize)), workersNum)
+    return min(int(math.ceil(float(sampleSize) / workerSize)), workersNum)
 
 
 def workersRequired(n, workersNum, threshold, epsilon):
     newThreshold = threshold / ALPHA
     return requiredNumOfWorkers(n, newThreshold, workersNum, epsilon)
+
+
+def generate_transaction():
+    return set(numpy.random.zipf(1.1, 50))
+
+
+def format_out(transaction):
+    return " ".join([str(i) for i in transaction]) + NEWLINE
+
+
+def generate_data(path, num_transactions):
+    with open(path, 'w') as f:
+        for i in xrange(num_transactions / 100):
+            for j in xrange(100):
+                data = [format_out(generate_transaction()) for _ in xrange(100)]
+                f.writelines(data)
+            print '%d%% of work done' % (i + 1)
