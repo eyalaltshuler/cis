@@ -4,10 +4,11 @@ import pyspark
 import estimator
 
 
-def alg(sc, data_set_rdd, threshold, epsilon):
+def alg(sc, data_set_rdd, threshold, epsilon, randomized=True, sample=None):
     data_set_size = data_set_rdd.count()
     sample_size = _calculate_sample_size(threshold, data_set_size)
-    sample = data_set_rdd.takeSample(False, sample_size)
+    if sample is None:
+        sample = data_set_rdd.takeSample(False, sample_size)
     frequencies = utils.countElements(data_set_rdd)
     common_elements = filter(lambda k: frequencies[k] >= threshold, frequencies.keys())
     print 'Number of common elements - %d' % len(common_elements)
@@ -27,7 +28,7 @@ def alg(sc, data_set_rdd, threshold, epsilon):
         candidates_to_workers = [(candidate, utils.requiredNumOfWorkers(data_set_size,
                                                                         size,
                                                                         partitions_num,
-                                                                        epsilon, sample=False, one=True)) for candidate, size in candidates_size]
+                                                                        epsilon, sample=randomized)) for candidate, size in candidates_size]
         tasks = _assign_tasks(candidates_to_workers, partitions_num)
         next_level_of_cis = data_estimator.estimate_cis(tasks)
         next_level_of_cis.sort(key=lambda x: hash(str(x[0])))

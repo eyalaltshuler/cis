@@ -1,6 +1,7 @@
 import cPickle
 import ast
 import sys
+import Queue
 
 SYS_RECURESION_LIMIT = 10 ** 6
 
@@ -29,7 +30,7 @@ class Frequents(object):
                    new_item_set_node.items.issubset(old_node.items):
                     old_node.children.add(new_item_set_node)
                     new_item_set_node.parents.add(old_node)
-                    value = hash(str(new_item_set_node.items))
+                    value = hash(str(sorted(list(new_item_set_node.items))))
                     if value in tmp:
                         continue
                     else:
@@ -66,6 +67,36 @@ class Frequents(object):
                 yield (str(list(s)), None)
 
         res = top_level_rdd.flatMap(mapFunc).reduceByKey(lambda a, b: a).map(lambda x: set(ast.literal_eval(x[0]))).collect()
+        return [itemset for itemset in res if itemset not in top_level_items]
+
+    def frequentsDict(self):
+        res = {}
+        queue = Queue.Queue()
+        for singleton in self._singletons:
+            queue.put(singleton)
+        while not queue.empty():
+            itemset = queue.get()
+            key = str(itemset.items)
+            if key not in res:
+                res[key] = itemset.frequency
+            for child in itemset.children:
+                queue.put(child)
+        return res
+
+    def frequentItemset(self):
+        res = []
+        tmp = []
+        queue = Queue.Queue()
+        for singleton in self._singletons:
+            queue.put(singleton)
+        while not queue.empty():
+            itemset = queue.get()
+            key = str(sorted(list(itemset.items)))
+            if key not in tmp:
+                tmp.append(key)
+                res.append(itemset.items)
+            for child in itemset.children:
+                queue.put(child)
         return res
 
     @staticmethod
@@ -79,6 +110,9 @@ class Frequents(object):
         with open(location) as f:
             res = cPickle.loads(f.read())
         return res
+
+    def compare(self, other):
+        pass
 
 
 class Node(object):

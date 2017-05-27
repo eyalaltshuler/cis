@@ -22,7 +22,7 @@ class Estimator(object):
             for item_set in task_i:
                 projected = filter(lambda t: item_set.issubset(t), data)
                 if projected:
-                    yield (str(list(item_set)), reduce(lambda a,b: a.intersection(b), projected))
+                    yield (str(sorted(list(item_set))), reduce(lambda a,b: a.intersection(b), projected))
 
         tmp =  self._dataset_rdd.mapPartitionsWithIndex(partition_func, preservesPartitioning=True).\
                                  reduceByKey(lambda a,b: a.intersection(b)).collect()

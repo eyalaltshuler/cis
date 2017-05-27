@@ -89,3 +89,17 @@ def generate_data(path, num_transactions):
                 data = [format_out(generate_transaction()) for _ in xrange(100)]
                 f.writelines(data)
             print '%d%% of work done' % (i + 1)
+
+
+def compare_itemset_lists(x, y):
+    res = []
+    for i in x:
+        found = False
+        for j in y:
+            if i == j:
+                found = True
+                break
+        if not found:
+            res.append(i)
+    return res
+
