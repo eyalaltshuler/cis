@@ -4,3 +4,7 @@
 *__pycache__*
 .idea/
 logs/
+build/*
+dist/*
+data/*
+cis.egg-info/*
