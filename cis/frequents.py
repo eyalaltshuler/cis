@@ -2,6 +2,8 @@ import cPickle
 import ast
 import sys
 import Queue
+import time
+from itertools import combinations
 
 SYS_RECURESION_LIMIT = 10 ** 6
 
@@ -78,12 +80,12 @@ class Frequents(object):
             itemset = queue.get()
             key = str(itemset.items)
             if key not in res:
-                res[key] = itemset.frequency
+                res[key] = (itemset.items, itemset.frequency)
             for child in itemset.children:
                 queue.put(child)
         return res
 
-    def frequentItemset(self):
+    def frequentItemsets(self):
         res = []
         tmp = []
         queue = Queue.Queue()
@@ -111,9 +113,34 @@ class Frequents(object):
             res = cPickle.loads(f.read())
         return res
 
-    def compare(self, other):
-        pass
+    def calc_error(self, other):
+        error = 0
+        otherFreqs = other.frequentsDict()
+        cache = set()
+        start = time.time()
+        for subset, expected_freq in self.iterate_over_subsets():
+            h = hash(str(sorted(list(subset))))
+            if h not in cache:
+                print 'finding error for itemset %s' % subset
+                cache.add(h)
+                for itemset, freq in other.frequentsDict().values():
+                    if subset in itemset:
+                        approx_freq = freq
+                        error += float(expected_freq) / approx_freq
+                        break
+            else:
+                print '%s is skipped as already in cache' % subset
+        end = time.time()
+        print 'error computation took %d seconds and error is %f' % (int(end - start), error)
+        return error
 
+
+    def iterate_over_subsets(self):
+        frequency_dict = self.frequentsDict()
+        for itemset, freq in frequency_dict.values():
+            for i in xrange(1, len(itemset)):
+                for sub in combinations(itemset, i):
+                    yield set(sub), freq
 
 class Node(object):
     def __init__(self, item_set, frequency):

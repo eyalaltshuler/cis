@@ -5,6 +5,8 @@ import pyspark
 import math
 import logging
 import numpy
+from itertools import combinations
+
 
 NEWLINE = '\n'
 ALPHA = 0.1
@@ -102,4 +104,3 @@ def compare_itemset_lists(x, y):
         if not found:
             res.append(i)
     return res
-
