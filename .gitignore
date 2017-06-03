@@ -8,3 +8,4 @@ build/*
 dist/*
 data/*
 cis.egg-info/*
+results/*
