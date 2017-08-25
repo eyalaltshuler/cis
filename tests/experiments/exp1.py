@@ -7,7 +7,7 @@ import json
 from cis import alg
 from cis import frequents
 
-INPUT_DATASET_PATH = "data/b.txt"
+INPUT_DATASET_PATH = "./data/b.txt"
 LATTICE_NAME = "b-lattice.bin"
 
 DATE = time.strftime("%x").replace("/", "_")
@@ -16,8 +16,8 @@ LOGS_DIR = "logs/%s_%s__%s" % (__file__.split("/")[-1].split(".")[0], DATE, TIME
 TEST_LOG_FILE_NAME = 'test.log'
 
 
-threshold = 40000
-epsilon = 0.1
+threshold = 50000
+epsilon = 0.001
 log = logging.getLogger()
 
 def get_dataset_rdd(sc, path):
@@ -47,7 +47,7 @@ def exp1():
 
     log.info('Starting test')
     start = time.time()
-    res = alg.alg(sc, dataset_rdd, threshold)
+    res = alg.alg(sc, dataset_rdd, threshold, epsilon)
     end = time.time()
     log.info('Test ended and took %d seconds', int(end - start))
 

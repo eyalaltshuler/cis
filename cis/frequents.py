@@ -10,9 +10,14 @@ SYS_RECURESION_LIMIT = 10 ** 6
 class Frequents(object):
     def __init__(self, singletons):
         self._singletons = [Node(item, frequency) for item, frequency in singletons]
+        self._levels = [self._singletons]
         self._topLevel = self._singletons
 
     def add_level(self, item_set_list):
+        self._levels.append([Node(itemset, frequency) for itemset, frequency in item_set_list])
+        self._topLevel = self._levels[-1]
+
+    def _add_level(self, item_set_list):
         top_level_nodes = self._topLevel
         candidates = [Node(itemset, frequency) for itemset, frequency in item_set_list]
         new_level = []
@@ -104,26 +109,21 @@ class Frequents(object):
             res = cPickle.loads(f.read())
         return res
 
-    def calc_error(self, other):
-        error = 0
-        otherFreqs = other.frequentsDict()
+    def calc_error(self, exactLattice):
+        errors = []
+        wrong_cis_num = 0
         cache = set()
-        start = time.time()
-        for subset, expected_freq in self.iterate_over_subsets():
-            h = hash(str(sorted(list(subset))))
+        for key, freq in self.frequentsDict().iteritems():
+            h = hash(str(sorted(list(freq[0]))))
             if h not in cache:
-                print 'finding error for itemset %s' % subset
                 cache.add(h)
-                for itemset, freq in other.frequentsDict().values():
-                    if subset in itemset:
-                        approx_freq = freq
-                        error += float(expected_freq) / approx_freq
-                        break
-            else:
-                print '%s is skipped as already in cache' % subset
-        end = time.time()
-        print 'error computation took %d seconds and error is %f' % (int(end - start), error)
-        return error
+                if key not in exactLattice.frequentsDict().keys():
+                    wrong_cis_num += 1
+                    continue
+                approx_freq = freq[1]
+                exact_freq = exactLattice.frequentsDict()[key][1]
+                errors.append(abs(float(exact_freq - approx_freq)) / exact_freq)
+        return sum(errors) / len(errors), wrong_cis_num
 
 
     def iterate_over_subsets(self):
