@@ -7,6 +7,7 @@ from cis import utils
 
 
 def alg_naive(data_set_rdd, threshold):
+    data_set_rdd.cache()
     frequencies = utils.countElements(data_set_rdd)
     data_set_size = data_set_rdd.count()
     common_elements = filter(lambda k: frequencies[k] >= threshold, frequencies.keys())

@@ -1,4 +1,4 @@
-all: unittest coverage
+all: unittest
 
 egg:
 	PYTHONPATH=$(PYTHONPATH):./cis python setup.py bdist_egg

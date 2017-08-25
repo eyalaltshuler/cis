@@ -12,15 +12,6 @@ class Frequents(object):
         self._singletons = [Node(item, frequency) for item, frequency in singletons]
         self._topLevel = self._singletons
 
-    def is_frequent(self, item_set, threshold):
-        pass
-            
-    def get_frequency(self, item_set):
-        pass
-
-    def _find_smallest_containing_item_set(self, itemset, threshold):
-        pass
-
     def add_level(self, item_set_list):
         top_level_nodes = self._topLevel
         candidates = [Node(itemset, frequency) for itemset, frequency in item_set_list]
