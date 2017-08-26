@@ -8,10 +8,9 @@ from itertools import combinations
 SYS_RECURESION_LIMIT = 10 ** 6
 
 class Frequents(object):
-    def __init__(self, singletons):
-        self._singletons = [Node(item, frequency) for item, frequency in singletons]
-        self._levels = [self._singletons]
-        self._topLevel = self._singletons
+    def __init__(self):
+        self._singletons = []
+        self._levels = []
 
     def add_level(self, item_set_list):
         self._levels.append([Node(itemset, frequency) for itemset, frequency in item_set_list])

@@ -11,16 +11,11 @@ import math
 log = logging.getLogger()
 
 
-def alg(sc, data_set_rdd, threshold, epsilon, randomized=True):
+def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True):
     data_set_rdd.cache()
-    start = time.time()
-    # data_set_size = data_set_rdd.count()
-    # data_set_size = data_set_rdd.countApprox(timeout=5000, confidence=0.95)
-    data_set_size = 100000
-    end = time.time()
-    log.info('Counting data set size took %d seconds, size approximated as %d', end - start, data_set_size)
     partitions_num = data_set_rdd.getNumPartitions()
     sample_size = _calculate_sample_size(threshold, data_set_size, epsilon) if randomized else data_set_size
+    collected_sample = data_set_rdd.take(sample_size)
     log.info('Using sample of size %d', sample_size)
     sample = data_set_rdd.sample(False, float(sample_size) / data_set_size)
     sample.cache()
@@ -28,52 +23,51 @@ def alg(sc, data_set_rdd, threshold, epsilon, randomized=True):
     scaled_threshold = float(threshold) * sample_size / data_set_size
     log.info('Estimating singletons frequencies')
     start = time.time()
-    frequencies = _countElements(sample, scaled_threshold)
+    frequencies = _countElements(collected_sample, scaled_threshold)
     common_elements = frequencies.keys()
     end = time.time()
     log.info('Singletons frequencies computation completed in %d seconds', end - start)
-    # common_elements = filter(lambda k: frequencies[k] >= scaled_threshold, frequencies.keys())
-    # log.info('Number of common elements - %d', len(common_elements))
     singletons = [(set([item]), frequencies[item] * data_set_size / sample_size) for item in common_elements]
-    cis_tree = frequents.Frequents(singletons)
+    cis_tree = frequents.Frequents()
 
     candidates = [singleton[0] for singleton in singletons]
     iteration = 1
 
     while candidates:
-        # log.info('Iteration %d starts. candidates set size is %d', iteration, len(candidates))
+        log.info('Iteration %d starts. candidates set size is %d', iteration, len(candidates))
 
-        # log.info('Startin Estimating and filtering.')
-        # start = time.time()
+        log.info('Starting Estimating and filtering.')
+        start = time.time()
         next_level = data_estimator.estimate(candidates).filter(lambda pair: pair[1][1] >= scaled_threshold).map(lambda x: (x[1][0], x[1][1] * data_set_size / sample_size))
         next_level.cache()
         cis_next_level = next_level.collect()
-        # end = time.time()
-        # log.info('Estimation and filter done in %d seconds. Filtering candidates', end - start)
+        end = time.time()
+        log.info('Estimation and filter done in %d seconds. Filtering candidates', end - start)
         if not cis_next_level:
-            # log.info('No candidates remained. Quiting iteration %d', iteration)
+            log.info('No candidates remained. Quiting iteration %d', iteration)
             break
-        # log.info('Adding new computed level to the resulting lattice')
-        # start = time.time()
+        log.info('Adding new computed level to the resulting lattice')
+        start = time.time()
         cis_tree.add_level(cis_next_level)
-        # end = time.time()
-        # log.info('Next level addition to lattice completed in %d seconds', end - start)
-        # start = time.time()
-        # candidates = cis_tree.fastExpand(level)
-        candidates = _expand(next_level, common_elements)
-        # end = time.time()
-        #log.info('Fast expansion took %d seconds, Iteration %d completed', end - start, iteration)
+        end = time.time()
+        log.info('Next level addition to lattice completed in %d seconds', end - start)
+        start = time.time()
+        candidates = _expand(next_level, common_elements, partitions_num)
+        end = time.time()
+        log.info('Fast expansion took %d seconds, Iteration %d completed', end - start, iteration)
 
         iteration += 1
 
     return cis_tree
 
-def _expand(level, common_elements):
+def _expand(level, common_elements, partitions_num):
     def _flatMap(element):
         for common_element in common_elements:
             if common_element not in element[0]:
-                yield element[0].add(common_element)
-    return level.flatMap(_flatMap).collect()
+                res = element[0].copy()
+                res.add(common_element)
+                yield json.dumps(sorted(list(res)))
+    return level.flatMap(_flatMap).distinct(partitions_num).map(lambda x: set(json.loads(x))).collect()
 
 
 def _alg(sc, data_set_rdd, threshold, epsilon, randomized=True):
@@ -93,7 +87,7 @@ def _alg(sc, data_set_rdd, threshold, epsilon, randomized=True):
     scaled_threshold = float(threshold) * sample_size / data_set_size
     log.info('Estimating singletons frequencies')
     start = time.time()
-    frequencies = _countElements(sample)
+    frequencies = _countElements(sample.collect())
     end = time.time()
     log.info('Singletons frequencies computation completed in %d seconds', end - start)
     common_elements = filter(lambda k: frequencies[k] >= scaled_threshold, frequencies.keys())
@@ -239,4 +233,12 @@ def _assign_tasks(candidate_to_workers, num_of_workers):
 
 
 def _countElements(dataset, threshold):
-    return {k: v for k, v in dataset.flatMap(lambda t: [(e,1) for e in t]).reduceByKey(lambda a,b: a+b).filter(lambda x: x[1] >= threshold).collect()}
+    # return {k: v for k, v in dataset.flatMap(lambda t: [(e,1) for e in t]).reduceByKey(lambda a,b: a+b).filter(lambda x: x[1] >= threshold).collect()}
+    res = {}
+    for itemset in dataset:
+        for item in itemset:
+            if item in res:
+                res[item] += 1
+                continue
+            res[item] = 1
+    return {k: v for k, v in res.iteritems() if v >= threshold}

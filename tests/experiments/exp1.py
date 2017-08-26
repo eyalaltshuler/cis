@@ -16,7 +16,7 @@ LOGS_DIR = "logs/%s_%s__%s" % (__file__.split("/")[-1].split(".")[0], DATE, TIME
 TEST_LOG_FILE_NAME = 'test.log'
 
 
-threshold = 50000
+threshold = 30000
 epsilon = 0.001
 log = logging.getLogger()
 
@@ -44,10 +44,12 @@ def exp1():
 
     log.info('Configuration for randomized test: Threshold=%(threshold)d, epsilon=%(epsilon)s',
              dict(threshold=threshold, epsilon=epsilon))
+    dataset_rdd.cache()
+    data_set_size = dataset_rdd.count()
 
     log.info('Starting test')
     start = time.time()
-    res = alg.alg(sc, dataset_rdd, threshold, epsilon)
+    res = alg.alg(sc, dataset_rdd, data_set_size, threshold, epsilon)
     end = time.time()
     log.info('Test ended and took %d seconds', int(end - start))
 

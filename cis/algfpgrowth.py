@@ -17,8 +17,9 @@ def alg_fp_growth(data_set_rdd, threshold, num_of_partitions):
 
 def _build_cis_tree(result):
     result = [(set(n.items), n.freq) for n in result]
+    cis_tree = Frequents()
     singletons = [(set(n[0]), n[1]) for n in result if len(n[0]) == 1]
-    cis_tree = Frequents(singletons=singletons)
+    cis_tree.add_level(singletons)
     left_item_sets = [n for n in result if n not in singletons]
     next_level = []
     while left_item_sets:

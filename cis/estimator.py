@@ -29,16 +29,7 @@ class Estimator(object):
 
     def estimate(self, itemset_list):
         def mapFunc(element):
-            res = {}
             for item_set in itemset_list:
                 if item_set.issubset(element):
-                    key = json.dumps(sorted(list(item_set)))
-                    if key not in res:
-                        res[key] = [element, 1]
-                    else:
-                        res[key][0] = res[key][0].intersection(element)
-                        res[key][1] += 1
-            for k, v in res.iteritems():
-                if len(v) > 0:
-                    yield (k, v)
+                    yield (json.dumps(sorted(list(item_set))), [element, 1])
         return self._sample.flatMap(mapFunc).reduceByKey(lambda a,b: [a[0].intersection(b[0]), a[1] + b[1]])
