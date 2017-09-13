@@ -16,7 +16,7 @@ LOGS_DIR = "logs/%s_%s__%s" % (__file__.split("/")[-1].split(".")[0], DATE, TIME
 TEST_LOG_FILE_NAME = 'test.log'
 
 
-threshold = 30000
+threshold = 50000
 epsilon = 0.001
 log = logging.getLogger()
 

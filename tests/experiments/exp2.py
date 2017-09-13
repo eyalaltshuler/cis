@@ -1,5 +1,6 @@
 import pyspark
 from cis import frequents
+import pickle
 
 INPUT_DATASET_PATH = "./data/b.txt"
 OUTPUT_PATH_RAND = "./b-lattice-fpg.bin"
@@ -26,7 +27,7 @@ def exp2():
     res = algfpgrowth.alg_fp_growth(data, threshold, 4)
     end = time()
     print 'alg-fp-growth test ended and took %d seconds' % int(end - start)
-    frequents.Frequents.save(res, OUTPUT_PATH_RAND)
+    pickle.dump(res, open(OUTPUT_PATH_RAND,"w"))
     sc.stop()
 
 if __name__=="__main__":
