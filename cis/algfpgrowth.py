@@ -13,10 +13,6 @@ def alg_fp_growth(data_set_rdd, threshold, num_of_partitions):
     result = model.freqItemsets().collect()
     end = time.time()
     print 'Frequent itemsets collection took %s seconds' % (end - start)
-    # start = time.time()
-    # res = _build_cis_tree(result)
-    # end = time.time()
-    # print 'building cis tree took %s seconds' % (end - start)
     return result
 
 def _build_cis_tree(result):
@@ -63,9 +59,11 @@ def _build_cis_tree(result):
 
 
 if __name__ == "__main__":
-    transactionSet = [set([1, 2, 3, 4]), set([1, 2, 3]), set([4, 3]), set([1]), set([2, 4])]
+    transactionSet = [set([1, 2, 3, 4]), set([1, 2, 3]), set([4, 3]), set([1]), set([2, 4])] * 1000000
+    print 'Creating spark context object'
     sc = pyspark.SparkContext()
     transactionRdd = sc.parallelize(transactionSet)
     threshold = 2 / float(5)
     res = alg_fp_growth(transactionRdd, threshold, 1)
+    print 'Result is %s' % res
     sc.stop()

@@ -97,3 +97,19 @@ def _countElements(dataset, threshold):
                 continue
             res[item] = 1
     return {k: v for k, v in res.iteritems() if v >= threshold}
+
+
+if __name__ == "__main__":
+    transactionSet = [set([1, 2, 3, 4]), set([1, 2, 3]), set([4, 3]), set([1]), set([2, 4])] * 1000000
+    print 'Creating spark context object'
+    sc = pyspark.SparkContext()
+    transactionRdd = sc.parallelize(transactionSet)
+    threshold = 400000
+    epsilon = 0.001
+    data_set_size = 5000000
+    start = time.time()
+    res = alg(sc, transactionRdd, data_set_size, threshold, epsilon)
+    end = time.time()
+    print 'alg computation took %s seconds' % (end - start)
+    print 'Result is %s' % res
+    sc.stop()
