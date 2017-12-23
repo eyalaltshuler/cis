@@ -25,6 +25,8 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True):
     start = time.time()
     frequencies = _countElements(collected_sample, scaled_threshold)
     common_elements = frequencies.keys()
+    log.info('There are %d common elements', len(common_elements))
+    log.info('Common elements are - %s', common_elements)
     end = time.time()
     log.info('Singletons frequencies computation completed in %d seconds', end - start)
     singletons = [(set([item]), frequencies[item] * data_set_size / sample_size) for item in common_elements]
@@ -36,7 +38,7 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True):
     while candidates:
         log.info('Iteration %d starts. candidates set size is %d', iteration, len(candidates))
 
-        log.info('Starting Estimating and filtering.')
+        log.info('Starting Estimating and filtering. There are %d candidates', len(candidates))
         start = time.time()
         next_level = data_estimator.estimate(candidates).filter(lambda pair: pair[1][1] >= scaled_threshold).map(lambda x: (x[1][0], x[1][1] * data_set_size / sample_size))
         next_level.cache()
@@ -46,7 +48,8 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True):
         if not cis_next_level:
             log.info('No candidates remained. Quiting iteration %d', iteration)
             break
-        log.info('Adding new computed level to the resulting lattice')
+        log.info('Adding new computed level to the resulting lattice, of size %d', len(cis_next_level))
+        log.info('New level is - %s', cis_next_level)
         start = time.time()
         cis_tree.add_level(cis_next_level)
         end = time.time()
@@ -54,7 +57,8 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True):
         start = time.time()
         candidates = _expand(next_level, common_elements, partitions_num)
         end = time.time()
-        log.info('Fast expansion took %d seconds, Iteration %d completed', end - start, iteration)
+        log.info('Fast expansion took %d seconds and created %d candidates, Iteration %d completed', end - start, len(candidates), iteration)
+        log.info('New candidates are %s', candidates)
 
         iteration += 1
 

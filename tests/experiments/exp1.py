@@ -16,8 +16,8 @@ LOGS_DIR = "logs/%s_%s__%s" % (__file__.split("/")[-1].split(".")[0], DATE, TIME
 TEST_LOG_FILE_NAME = 'test.log'
 
 
-threshold = 50000
-epsilon = 0.001
+threshold = 70000
+epsilon = 0.0001
 log = logging.getLogger()
 
 def get_dataset_rdd(sc, path):
@@ -46,6 +46,7 @@ def exp1():
              dict(threshold=threshold, epsilon=epsilon))
     dataset_rdd.cache()
     data_set_size = dataset_rdd.count()
+    log.info('dataset has %s records' % data_set_size)
 
     log.info('Starting test')
     start = time.time()
@@ -59,6 +60,7 @@ def exp1():
     log.info('Lattice saved successfully')
 
     log.info('Freeing Spark context object')
+
     sc.stop()
     log.info('Experiement done')
 

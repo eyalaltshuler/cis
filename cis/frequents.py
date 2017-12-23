@@ -12,6 +12,14 @@ class Frequents(object):
         self._singletons = []
         self._levels = []
 
+    def print_level(self, i):
+        if i >= len(self._levels):
+            raise Exception('Illegel level - %d' % i)
+        res = []
+        for freqneut_itemset in self._levels[i]:
+            res.append('[%s, %d]' % (freqneut_itemset.items, freqneut_itemset.frequency))
+        print ",".join(res)
+
     def add_level(self, item_set_list):
         self._levels.append([Node(itemset, frequency) for itemset, frequency in item_set_list])
         self._topLevel = self._levels[-1]
@@ -69,15 +77,11 @@ class Frequents(object):
     def frequentsDict(self):
         res = {}
         queue = Queue.Queue()
-        for singleton in self._singletons:
-            queue.put(singleton)
-        while not queue.empty():
-            itemset = queue.get()
-            key = str(itemset.items)
-            if key not in res:
-                res[key] = (itemset.items, itemset.frequency)
-            for child in itemset.children:
-                queue.put(child)
+        for level in self._levels:
+            for itemset in level:
+                key = str(itemset.items)
+                if key not in res:
+                    res[key] = (itemset.items, itemset.frequency)
         return res
 
     def frequentItemsets(self):
