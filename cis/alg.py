@@ -72,7 +72,7 @@ def _expand(level, common_elements, partitions_num):
                 res.add(common_element)
                 yield json.dumps(sorted(list(res)))
     return level.flatMap(_flatMap).distinct(partitions_num).map(lambda x: set(json.loads(x))).collect()
-
+e
 
 DELTA = 0.1
 ALPHA = 0.01
