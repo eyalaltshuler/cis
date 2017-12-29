@@ -11,10 +11,10 @@ import math
 log = logging.getLogger()
 
 
-def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True):
+def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, alpha=0.01):
     data_set_rdd.cache()
     partitions_num = data_set_rdd.getNumPartitions()
-    sample_size = _calculate_sample_size(threshold, data_set_size, epsilon) if randomized else data_set_size
+    sample_size = _calculate_sample_size(threshold, data_set_size, epsilon, alpha) if randomized else data_set_size
     collected_sample = data_set_rdd.take(sample_size)
     log.info('Using sample of size %d', sample_size)
     sample = data_set_rdd.sample(False, float(sample_size) / data_set_size)
@@ -72,12 +72,11 @@ def _expand(level, common_elements, partitions_num):
                 res.add(common_element)
                 yield json.dumps(sorted(list(res)))
     return level.flatMap(_flatMap).distinct(partitions_num).map(lambda x: set(json.loads(x))).collect()
-e
+
 
 DELTA = 0.1
-ALPHA = 0.01
-def _calculate_sample_size(threshold, data_set_size, epsilon):
-    return int(math.ceil((math.log(1 / epsilon) * 2 * data_set_size) / ((1 - ALPHA) * DELTA ** 2 * threshold)))
+def _calculate_sample_size(threshold, data_set_size, epsilon, alpha=0.01):
+    return int(math.ceil((math.log(1 / epsilon) * 2 * data_set_size) / ((1 - alpha) * DELTA ** 2 * threshold)))
 
 
 def _assign_tasks(candidate_to_workers, num_of_workers):

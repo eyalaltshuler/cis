@@ -9,12 +9,11 @@ from cis import alg
 from cis import algfpgrowth
 
 
-XSMALL_EPSILON = 0.001
-SMALL_EPSILON = 0.01
-MEDUIM_EPSILON = 0.05
-LARGE_EPSILON = 0.1
-XLARGE_EPSILON = 0.3
-
+XSMALL_ALPHA = 0.01
+SMALL_ALPHA = 0.05
+MEDUIM_ALPHA = 0.1
+LARGE_ALPHA = 0.2
+XLARGE_ALPHA = 0.3
 
 DATA_SET_NAME = 'generated-b'
 THRESHOLD_RATIO = 0.7
@@ -22,11 +21,11 @@ THRESHOLD_RATIO = 0.7
 DATE = time.strftime("%x").replace("/", "_")
 TIME = time.strftime("%X").replace(":", "_")
 TEST_DIR = "results/%s/%s_%s__%s" % (DATA_SET_NAME, __file__.split("/")[-1].split(".")[0], DATE, TIME)
-TEST_FILE_NAME = 'test_epsilon.res'
+TEST_FILE_NAME = 'test_alpha.res'
 
 RES = None
 
-class TestEpsilon(unittest.TestCase):
+class TestAlpha(unittest.TestCase):
 
     def setUp(self):
         self._data_path = "data/b.txt"
@@ -36,6 +35,7 @@ class TestEpsilon(unittest.TestCase):
         self._data_set_rdd.cache()
         self._data_set_size = self._data_set_rdd.count()
         self._threshold = THRESHOLD_RATIO * self._data_set_size
+        self._epsilon = 0.1
         if not os.path.exists("results/%s" % DATA_SET_NAME):
             os.mkdir("results/%s" % DATA_SET_NAME)
         if not os.path.exists(TEST_DIR):
@@ -56,14 +56,15 @@ class TestEpsilon(unittest.TestCase):
     def _init_res_dict(self):
         return {'alg': {}, 'base': {}, 'spark': {}}
 
-    def _collect_results(self, param, epsilon):
+    def _collect_results(self, param, alpha):
         global RES
-        RES[param]['value'] = epsilon
+        RES[param]['value'] = alpha
         RES[param]['base']['graph'], RES[param]['base']['time'] = run_base(self._sc,
                                                                            self._data_set_rdd,
                                                                            self._data_set_size,
                                                                            self._threshold,
-                                                                           epsilon)
+                                                                           self._epsilon,
+                                                                           alpha=alpha)
         RES[param]['spark']['graph'], RES[param]['spark']['time'] = run_spark(self._data_set_rdd,
                                                                               THRESHOLD_RATIO,
                                                                               self._num_machines)
@@ -71,26 +72,27 @@ class TestEpsilon(unittest.TestCase):
                                                                         self._data_set_rdd,
                                                                         self._data_set_size,
                                                                         self._threshold,
-                                                                        epsilon)
+                                                                        self._epsilon,
+                                                                        alpha=alpha)
         alg_graph = RES[param]['alg']['graph']
         base_graph = RES[param]['base']['graph']
 
         RES[param]['alg']['error'], RES[param]['alg']['wrong_cis'] = alg_graph.calc_error(base_graph)
 
     def test_xsmall(self):
-        self._collect_results('xsmall', XSMALL_EPSILON)
+        self._collect_results('xsmall', XSMALL_ALPHA)
 
     def test_small(self):
-        self._collect_results('small', SMALL_EPSILON)
+        self._collect_results('small', SMALL_ALPHA)
 
     def test_medium(self):
-        self._collect_results('medium', MEDUIM_EPSILON)
+        self._collect_results('medium', MEDUIM_ALPHA)
 
     def test_large(self):
-        self._collect_results('large', LARGE_EPSILON)
+        self._collect_results('large', LARGE_ALPHA)
 
     def test_xlarge(self):
-        self._collect_results('xlarge', XLARGE_EPSILON)
+        self._collect_results('xlarge', XLARGE_ALPHA)
 
     def tearDown(self):
         self._sc.stop()
@@ -120,8 +122,8 @@ def measure_time(test):
 
 
 @measure_time
-def run_base(sc, data_set_rdd, data_set_size, threshold, epsilon):
-    return alg.alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=False)
+def run_base(sc, data_set_rdd, data_set_size, threshold, epsilon, alpha=0.1):
+    return alg.alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=False, alpha=alpha)
 
 
 @measure_time
@@ -130,5 +132,5 @@ def run_spark(data_set_rdd, threshold, num_of_partitions):
 
 
 @measure_time
-def run_alg(sc, data_set_rdd, data_set_size, threshold, epsilon):
-    return alg.alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True)
+def run_alg(sc, data_set_rdd, data_set_size, threshold, epsilon, alpha=0.1):
+    return alg.alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, alpha=alpha)
