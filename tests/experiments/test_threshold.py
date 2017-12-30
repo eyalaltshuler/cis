@@ -24,7 +24,7 @@ TEST_FILE_NAME = 'test_threshold.res'
 
 RES = None
 
-class TestAlpha(unittest.TestCase):
+class TestThreshold(unittest.TestCase):
 
     def setUp(self):
         self._data_path = "data/b.txt"
