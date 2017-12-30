@@ -104,3 +104,18 @@ def compare_itemset_lists(x, y):
         if not found:
             res.append(i)
     return res
+
+
+def convert_format(input_path, output_path):
+    try:
+        sc = pyspark.SparkContext()
+        rdd = sc.newAPIHadoopFile(input_path,
+                                  "org.apache.hadoop.mapreduce.lib.input.TextInputFormat",
+                                  "org.apache.hadoop.io.Text",
+                                  "org.apache.hadoop.io.LongWritable",
+                                  conf={'textinputformat.record.delimiter': '---END.OF.DOCUMENT---'})
+        rdd1 = rdd.map(lambda a: a[1].strip().split(" "))
+        rdd2 = rdd1.map(lambda a: " ".join([str(hash(i)) for i in a]))
+        rdd2.saveAsTextFile(output_path)
+    finally:
+        sc.stop()
