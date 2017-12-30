@@ -119,3 +119,39 @@ def convert_format(input_path, output_path):
         rdd2.saveAsTextFile(output_path)
     finally:
         sc.stop()
+
+
+def create_dataset_different_sizes(input_path, output_path, db_name):
+    try:
+        sc = pyspark.SparkContext()
+        rdd = sc.textFile(input_path)
+        rdd.cache()
+        print 'loaded rdd from %s' % input_path
+
+        xsmall_rdd = rdd.sample(False, 0.2)
+        path = os.path.join(output_path, db_name + '-xsmall')
+        xsmall_rdd.saveAsTextFile(path)
+        print 'Created db at %s' % path
+
+        path = os.path.join(output_path, db_name + '-small')
+        small_rdd = rdd.sample(False, 0.4)
+        small_rdd.saveAsTextFile(path)
+        print 'Created db at %s' % path
+
+        path = os.path.join(output_path, db_name + '-medium')
+        medium_rdd = rdd.sample(False, 0.6)
+        medium_rdd.saveAsTextFile(path)
+        print 'Created db at %s' % path
+
+        path = os.path.join(output_path, db_name + '-large')
+        large_rdd = rdd.sample(False, 0.8)
+        large_rdd.saveAsTextFile(path)
+        print 'Created db at %s' % path
+
+        path = os.path.join(output_path, db_name + '-xlarge')
+        xlarge_rdd = rdd.sample(False, 1.0)
+        xlarge_rdd.saveAsTextFile(path)
+        print 'Created db at %s' % path
+    finally:
+        sc.stop()
+        print 'done'
