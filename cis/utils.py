@@ -6,12 +6,18 @@ import math
 import logging
 import numpy
 from itertools import combinations
-
+import yaml
 
 NEWLINE = '\n'
 ALPHA = 0.1
 DELTA = 0.1
 
+
+def get_spark_context():
+    c = [(k, v) for k, v in yaml.load(file("spark-s3.conf").read()).iteritems()]
+    conf = pyspark.SparkConf()
+    conf.setAll(c)
+    return pyspark.SparkContext(conf=conf)
 
 def sample(dataset, datasetSize, fraction):
     return dataset.sample(False, fraction).collect()
@@ -108,7 +114,7 @@ def compare_itemset_lists(x, y):
 
 def convert_format(input_path, output_path):
     try:
-        sc = pyspark.SparkContext()
+        sc = get_spark_context()
         rdd = sc.newAPIHadoopFile(input_path,
                                   "org.apache.hadoop.mapreduce.lib.input.TextInputFormat",
                                   "org.apache.hadoop.io.Text",
@@ -123,7 +129,7 @@ def convert_format(input_path, output_path):
 
 def create_dataset_different_sizes(input_path, output_path, db_name):
     try:
-        sc = pyspark.SparkContext()
+        sc = get_spark_context()
         rdd = sc.textFile(input_path)
         rdd.cache()
         print 'loaded rdd from %s' % input_path

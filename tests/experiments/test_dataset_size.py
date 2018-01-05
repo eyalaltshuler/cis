@@ -7,6 +7,7 @@ import os
 
 from cis import alg
 from cis import algfpgrowth
+from cis import utils
 
 
 XSMALL_DS_PATH = "data/b-xsmall.txt"
@@ -30,7 +31,7 @@ class TestDatasetSize(unittest.TestCase):
     def setUp(self):
         self._data_path = None
         self._num_machines = 4
-        self._sc = pyspark.SparkContext()
+        self._sc = utils.get_spark_context()
         self._epsilon = 0.1
         if not os.path.exists("results/%s" % DATA_SET_NAME):
             os.mkdir("results/%s" % DATA_SET_NAME)

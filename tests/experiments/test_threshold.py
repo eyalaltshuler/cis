@@ -7,6 +7,7 @@ import os
 
 from cis import alg
 from cis import algfpgrowth
+from cis import utils
 
 
 XSMALL_THRESHOLD = 0.5
@@ -29,7 +30,7 @@ class TestThreshold(unittest.TestCase):
     def setUp(self):
         self._data_path = "data/b.txt"
         self._num_machines = 4
-        self._sc = pyspark.SparkContext()
+        self._sc = utils.get_spark_context()
         self._data_set_rdd = self._get_dataset_rdd()
         self._data_set_rdd.cache()
         self._data_set_size = self._data_set_rdd.count()

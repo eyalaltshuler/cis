@@ -5,3 +5,4 @@ sudo yum install pyspark
 
 wget http://central.maven.org/maven2/com/amazonaws/aws-java-sdk/1.7.4/aws-java-sdk-1.7.4.jar
 wget http://central.maven.org/maven2/org/apache/hadoop/hadoop-aws/2.7.3/hadoop-aws-2.7.3.jar
+wget http://clojars.org/repo/hadoop-lzo/hadoop-lzo/0.4.15/hadoop-lzo-0.4.15.jar
