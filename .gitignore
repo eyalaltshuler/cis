@@ -12,3 +12,4 @@ cis.egg-info/*
 results/*
 *.bin
 *.txt
+*.jar
