@@ -16,7 +16,9 @@ MEDUIM_THRESHOLD = 0.7
 LARGE_THRESHOLD = 0.8
 XLARGE_THRESHOLD = 0.9
 
-DATA_SET_NAME = 'generated-b'
+DATA_PATH = "s3a://cis-exp1/wiki-xlarge/"
+NUM_MACHINES = 40
+DATA_SET_NAME = 'wiki'
 
 DATE = time.strftime("%x").replace("/", "_")
 TIME = time.strftime("%X").replace(":", "_")
@@ -28,8 +30,8 @@ RES = None
 class TestThreshold(unittest.TestCase):
 
     def setUp(self):
-        self._data_path = "data/b.txt"
-        self._num_machines = 4
+        self._data_path = DATA_PATH
+        self._num_machines = NUM_MACHINES
         self._sc = utils.get_spark_context()
         self._data_set_rdd = self._get_dataset_rdd()
         self._data_set_rdd.cache()

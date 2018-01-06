@@ -16,8 +16,9 @@ MEDUIM_EPSILON = 0.05
 LARGE_EPSILON = 0.1
 XLARGE_EPSILON = 0.3
 
-
-DATA_SET_NAME = 'generated-b'
+DATA_PATH = "s3a://cis-exp1/wiki-xlarge/"
+NUM_MACHINES = 40
+DATA_SET_NAME = 'wiki'
 THRESHOLD_RATIO = 0.7
 
 DATE = time.strftime("%x").replace("/", "_")
@@ -30,8 +31,8 @@ RES = None
 class TestEpsilon(unittest.TestCase):
 
     def setUp(self):
-        self._data_path = "data/b.txt"
-        self._num_machines = 4
+        self._data_path = DATA_PATH
+        self._num_machines = NUM_MACHINES
         self._sc = utils.get_spark_context()
         self._data_set_rdd = self._get_dataset_rdd()
         self._data_set_rdd.cache()

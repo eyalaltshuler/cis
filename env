@@ -1,7 +1,11 @@
 #!/bin/sh
 sudo yum install git
-sudo yum install ipython
-sudo yum install pyspark
+sudo pip install ipython
+sudo pip install pyspark
+sudo pip install yaml
+sudo pip install pytest
+
+. /etc/spark/spark_env.sh
 
 wget http://central.maven.org/maven2/com/amazonaws/aws-java-sdk/1.7.4/aws-java-sdk-1.7.4.jar
 wget http://central.maven.org/maven2/org/apache/hadoop/hadoop-aws/2.7.3/hadoop-aws-2.7.3.jar

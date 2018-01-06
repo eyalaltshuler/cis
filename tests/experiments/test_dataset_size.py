@@ -10,14 +10,16 @@ from cis import algfpgrowth
 from cis import utils
 
 
-XSMALL_DS_PATH = "data/b-xsmall.txt"
-SMALL_DS_PATH = "data/b-small.txt"
-MEDUIM_DS_PATH = "data/b-medium.txt"
-LARGE_DS_PATH = "data/b-large.txt"
-XLARGE_DS_PATH = "data/b-xlarge.txt"
+DATA_PATH = "s3a://cis-exp1/wiki"
+XSMALL_DS_PATH = "%s-xsmall/" % DATA_PATH
+SMALL_DS_PATH = "%s-small/" % DATA_PATH
+MEDUIM_DS_PATH = "%s-medium/" % DATA_PATH
+LARGE_DS_PATH = "%s-large/" % DATA_PATH
+XLARGE_DS_PATH = "%s-xlarge/" % DATA_PATH
 
 THRESHOLD_RATIO = 0.7
-DATA_SET_NAME = 'generated-b'
+DATA_SET_NAME = 'wiki'
+NUM_MACHINES = 40
 
 DATE = time.strftime("%x").replace("/", "_")
 TIME = time.strftime("%X").replace(":", "_")
@@ -30,7 +32,7 @@ class TestDatasetSize(unittest.TestCase):
 
     def setUp(self):
         self._data_path = None
-        self._num_machines = 4
+        self._num_machines = NUM_MACHINES
         self._sc = utils.get_spark_context()
         self._epsilon = 0.1
         if not os.path.exists("results/%s" % DATA_SET_NAME):
