@@ -132,40 +132,45 @@ def _get_dataset_rdd(sc, path, machines):
     dataset_rdd = lines_rdd.map(lambda x: set([int(i) for i in x.strip().split(" ")]))
     return dataset_rdd
 
-# f = lambda a: " ".join([str(i) for i in list(a)])
+SET_TO_STR = lambda a: " ".join([str(i) for i in list(a)])
 
 
 def create_dataset_different_sizes(input_path, output_path, db_name):
     try:
         sc = get_spark_context()
         num_partitions = 40
-        rdd = sc.textFile(input_path, num_partitions)
-        # rdd = rdd.coalesce(num_partitions)
+        rdd = _get_dataset_rdd(sc, input_path, num_partitions)
+        rdd = rdd.coalesce(num_partitions)
         rdd.cache()
         print 'loaded rdd from %s' % input_path
 
         xsmall_rdd = rdd.sample(False, 0.2)
         path = os.path.join(output_path, db_name + '-xsmall')
+        xsmall_rdd = xsmall_rdd.map(SET_TO_STR)
         xsmall_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-small')
         small_rdd = rdd.sample(False, 0.4)
+        small_rdd = small_rdd.map(SET_TO_STR)
         small_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-medium')
         medium_rdd = rdd.sample(False, 0.6)
+        medium_rdd = medium_rdd.map(SET_TO_STR)
         medium_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-large')
         large_rdd = rdd.sample(False, 0.8)
+        large_rdd = large_rdd.map(SET_TO_STR)
         large_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-xlarge')
         xlarge_rdd = rdd.sample(False, 1.0)
+        xlarge_rdd = xlarge_rdd.map(SET_TO_STR)
         xlarge_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
     finally:
@@ -177,33 +182,38 @@ def create_dataset_different_sizes_news(input_path, output_path, db_name):
     try:
         sc = get_spark_context()
         num_partitions = 40
-        rdd = sc.textFile(input_path, num_partitions)
-        # rdd = rdd.coalesce(num_partitions)
+        rdd = _get_dataset_rdd(sc, input_path, num_partitions)
+        rdd = rdd.coalesce(num_partitions)
         rdd.cache()
         print 'loaded rdd from %s' % input_path
 
         xsmall_rdd = rdd.sample(False, 0.11)
         path = os.path.join(output_path, db_name + '-xsmall')
+        xsmall_rdd = xsmall_rdd.map(SET_TO_STR)
         xsmall_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-small')
         small_rdd = rdd.sample(False, 0.22)
+        small_rdd = small_rdd.map(SET_TO_STR)
         small_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-medium')
         medium_rdd = rdd.sample(False, 0.33)
+        medium_rdd = medium_rdd.map(SET_TO_STR)
         medium_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-large')
         large_rdd = rdd.sample(False, 0.44)
+        large_rdd = large_rdd.map(SET_TO_STR)
         large_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-xlarge')
         xlarge_rdd = rdd.sample(False, 0.55)
+        xlarge_rdd = xlarge_rdd.map(SET_TO_STR)
         xlarge_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
     finally:
