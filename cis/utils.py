@@ -140,32 +140,32 @@ def create_dataset_different_sizes(input_path, output_path, db_name):
         sc = get_spark_context()
         num_partitions = 40
         rdd = sc.textFile(input_path, num_partitions)
-        # rdd = rdd.coalesce(num_partitions)
+        rdd = rdd.coalesce(num_partitions)
         rdd.cache()
         print 'loaded rdd from %s' % input_path
 
-        xsmall_rdd = rdd.sample(False, 0.2)
+        xsmall_rdd = rdd.sample(False, 0.2).map(lambda x: x + ' ')
         path = os.path.join(output_path, db_name + '-xsmall')
         xsmall_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-small')
-        small_rdd = rdd.sample(False, 0.4)
+        small_rdd = rdd.sample(False, 0.4).map(lambda x: x + ' ')
         small_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-medium')
-        medium_rdd = rdd.sample(False, 0.6)
+        medium_rdd = rdd.sample(False, 0.6).map(lambda x: x + ' ')
         medium_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-large')
-        large_rdd = rdd.sample(False, 0.8)
+        large_rdd = rdd.sample(False, 0.8).map(lambda x: x + ' ')
         large_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-xlarge')
-        xlarge_rdd = rdd.sample(False, 1.0)
+        xlarge_rdd = rdd.sample(False, 1.0).map(lambda x: x + ' ')
         xlarge_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
     finally:
@@ -178,32 +178,32 @@ def create_dataset_different_sizes_news(input_path, output_path, db_name):
         sc = get_spark_context()
         num_partitions = 40
         rdd = sc.textFile(input_path, num_partitions)
-        # rdd = rdd.coalesce(num_partitions)
+        rdd = rdd.coalesce(num_partitions)
         rdd.cache()
         print 'loaded rdd from %s' % input_path
 
-        xsmall_rdd = rdd.sample(False, 0.11)
+        xsmall_rdd = rdd.sample(False, 0.11).map(lambda x: x + ' ')
         path = os.path.join(output_path, db_name + '-xsmall')
         xsmall_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-small')
-        small_rdd = rdd.sample(False, 0.22)
+        small_rdd = rdd.sample(False, 0.22).map(lambda x: x + ' ')
         small_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-medium')
-        medium_rdd = rdd.sample(False, 0.33)
+        medium_rdd = rdd.sample(False, 0.33).map(lambda x: x + ' ')
         medium_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-large')
-        large_rdd = rdd.sample(False, 0.44)
+        large_rdd = rdd.sample(False, 0.44).map(lambda x: x + ' ')
         large_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
 
         path = os.path.join(output_path, db_name + '-xlarge')
-        xlarge_rdd = rdd.sample(False, 0.55)
+        xlarge_rdd = rdd.sample(False, 0.55).map(lambda x: x + ' ')
         xlarge_rdd.saveAsTextFile(path)
         print 'Created db at %s' % path
     finally:
