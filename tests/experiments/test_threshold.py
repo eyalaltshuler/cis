@@ -51,7 +51,7 @@ class TestThreshold(unittest.TestCase):
 
     def _get_dataset_rdd(self):
         lines_rdd = self._sc.textFile(self._data_path, self._num_machines)
-        dataset_rdd = lines_rdd.map(lambda x: set([int(i) for i in x.strip().split(" ")]))
+        dataset_rdd = lines_rdd.map(lambda x: set([hash(i) for i in x.split(" ")]))
         return dataset_rdd
 
     def _init_res_dict(self):
