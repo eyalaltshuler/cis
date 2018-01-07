@@ -129,7 +129,7 @@ def convert_format(input_path, output_path):
 
 def _get_dataset_rdd(sc, path, machines):
     lines_rdd = sc.textFile(path, machines)
-    dataset_rdd = lines_rdd.map(lambda x: set([int(i) for i in x.split(" ")]))
+    dataset_rdd = lines_rdd.map(lambda x: set([hash(i) for i in x.split(" ")]))
     return dataset_rdd
 
 # f = lambda a: " ".join([str(i) for i in list(a)])
