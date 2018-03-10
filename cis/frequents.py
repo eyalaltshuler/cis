@@ -115,6 +115,7 @@ class Frequents(object):
     def calc_error(self, exactLattice):
         errors = []
         wrong_cis_num = 0
+        detected_cis_num = 0
         cache = set()
         for key, freq in self.frequentsDict().iteritems():
             h = hash(str(sorted(list(freq[0]))))
@@ -123,10 +124,11 @@ class Frequents(object):
                 if key not in exactLattice.frequentsDict().keys():
                     wrong_cis_num += 1
                     continue
+                detected_cis_num += 1
                 approx_freq = freq[1]
                 exact_freq = exactLattice.frequentsDict()[key][1]
                 errors.append(abs(float(exact_freq - approx_freq)) / exact_freq)
-        return sum(errors) / len(errors), wrong_cis_num
+        return sum(errors) / len(errors), wrong_cis_num, float(detected_cis_num) / len(self.frequentsDict().keys())
 
 
     def iterate_over_subsets(self):

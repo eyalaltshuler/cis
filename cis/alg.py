@@ -15,12 +15,12 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
     data_set_rdd.cache()
     partitions_num = data_set_rdd.getNumPartitions()
     sample_size = _calculate_sample_size(threshold, data_set_size, epsilon, alpha) if randomized else data_set_size
-    collected_sample = data_set_rdd.take(sample_size)
+    collected_sample = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
     log.info('Using sample of size %d', sample_size)
-    sample = data_set_rdd.sample(False, float(sample_size) / data_set_size)
-    sample.cache()
-    data_estimator = estimator.Estimator(sample)
-    scaled_threshold = float(threshold) * sample_size / data_set_size
+    # sample = data_set_rdd.sample(False, float(sample_size) / data_set_size)
+    # sample.cache()
+    data_estimator = estimator.Estimator(sc.parallelize(collected_sample))
+    scaled_threshold = float(threshold) * sample_size / data_set_size if randomized else threshold
     log.info('Estimating singletons frequencies')
     start = time.time()
     frequencies = _countElements(collected_sample, scaled_threshold)
@@ -37,10 +37,9 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
 
     while candidates:
         log.info('Iteration %d starts. candidates set size is %d', iteration, len(candidates))
-
         log.info('Starting Estimating and filtering. There are %d candidates', len(candidates))
         start = time.time()
-        next_level = data_estimator.estimate(candidates).filter(lambda pair: pair[1][1] >= scaled_threshold).map(lambda x: (x[1][0], x[1][1] * data_set_size / sample_size))
+        next_level = data_estimator.estimate(candidates).filter(lambda pair: pair[1][1] >= scaled_threshold).map(lambda x: (x[1][0], x[1][1] * data_set_size / scaled_threshold))
         next_level.cache()
         cis_next_level = next_level.collect()
         end = time.time()

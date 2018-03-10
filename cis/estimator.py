@@ -12,13 +12,13 @@ class Estimator(object):
                 if item_set.issubset(element):
                     key = json.dumps(sorted(list(item_set)))
                     if key not in res:
-                        res[key] = element
+                        res[key] = [element, 1]
                     else:
-                        res[key] = res[key].intersection(element)
+                        res[key] = [res[key][0].intersection(element), res[key][1] + 1]
             for k, v in res.iteritems():
                 if len(v) > 0:
                     yield (k, v)
-        return {k: v for k, v in self._sample.flatMap(mapFunc).reduceByKey(lambda a,b: a.intersection(b)).collect()}
+        return {k: v for k, v in self._sample.flatMap(mapFunc).reduceByKey(lambda a,b: [a[0].intersection(b[0]), a[1] + b[1]]).collect()}
 
     def estimate_sizes(self, itemset_list):
         def mapFunc(element):
@@ -32,4 +32,4 @@ class Estimator(object):
             for item_set in itemset_list:
                 if item_set.issubset(element):
                     yield (json.dumps(sorted(list(item_set))), [element, 1])
-        return self._sample.flatMap(mapFunc).reduceByKey(lambda a,b: [a[0].intersection(b[0]), a[1] + b[1]])
+        return self._sample.flatMap(mapFunc).reduceByKey(lambda a, b: [a[0].intersection(b[0]), a[1] + b[1]])

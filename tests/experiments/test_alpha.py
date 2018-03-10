@@ -17,7 +17,7 @@ LARGE_ALPHA = 0.2
 XLARGE_ALPHA = 0.3
 
 DATA_SET_NAME = 'wiki'
-THRESHOLD_RATIO = 0.7
+THRESHOLD_RATIO = 0.3
 DATA_PATH = "s3a://cis-exp1/wiki-xlarge/"
 NUM_MACHINES = 40
 
@@ -78,7 +78,11 @@ class TestAlpha(unittest.TestCase):
                                                                         self._epsilon,
                                                                         alpha=alpha)
         alg_graph = RES[param]['alg']['graph']
+        import ipdb
+        ipdb.set_trace()
         base_graph = RES[param]['base']['graph']
+        import ipdb
+        ipdb.set_trace()
 
         RES[param]['alg']['error'], RES[param]['alg']['wrong_cis'] = alg_graph.calc_error(base_graph)
 

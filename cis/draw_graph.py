@@ -67,6 +67,15 @@ def wrong_cis_graph(res, f_name):
           "Wrong cis as a function of alpha values", "%s.wrong_cis" %f_name)
 
 
+def detected_cis_graph(res, f_name):
+    print 'caluclate x values'
+    x_axis = [res[k]['value'] for k in KEYS]
+    print 'calculate y values for alg'
+    y_error_alg = get_y_values(res, 'alg', 'detected_cis')
+    graph(x_axis, [y_error_alg], "Alpha values", "number of detected CIS",
+          "Detected cis as a function of alpha values", "%s.detected_cis" %f_name)
+
+
 def load_and_draw_graphs(f_name):
     res = pickle.loads(file(f_name).read())
     print 'generating time graphs'
@@ -75,6 +84,8 @@ def load_and_draw_graphs(f_name):
     error_graph(res, f_name)
     print 'generating wrong cis graphs'
     wrong_cis_graph(res, f_name)
+    print 'generating correct cis graphs'
+    detected_cis_graph(res, f_name)
 
 
 def scan(input_dir):
@@ -101,4 +112,9 @@ def test():
     print 'Test done.'
 
 if __name__ == "__main__":
-    scan(INPUT_DIR)
+    import sys
+    args = sys.argv
+    if len(args) != 2:
+        print 'Usage: draw_graphs <input_dir>'
+    input_dir = args[1]
+    scan(input_dir)
