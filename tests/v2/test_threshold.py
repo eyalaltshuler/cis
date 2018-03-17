@@ -71,7 +71,7 @@ class TestThreshold:
         self.reset()
         RES[param]['base']['graph'], time3 = run_base(self._sc, self._data_set_rdd, self._data_set_size,
                                                       threshold * self._data_set_size, self._epsilon)
-        RES[param]['base']['time'] = (time1 + time2 + time3) / 3
+        RES[param]['base']['time'] = (time1 + time2 + time3) / 3.0
 
         self.reset()
         RES[param]['spark']['graph'], time1 = run_spark(self._data_set_rdd, threshold, self._num_machines)
@@ -79,7 +79,7 @@ class TestThreshold:
         RES[param]['spark']['graph'], time2 = run_spark(self._data_set_rdd, threshold, self._num_machines)
         self.reset()
         RES[param]['spark']['graph'], time3 = run_spark(self._data_set_rdd, threshold, self._num_machines)
-        RES[param]['spark']['time'] = (time1 + time2 + time3) / 3
+        RES[param]['spark']['time'] = (time1 + time2 + time3) / 3.0
 
         base_graph = RES[param]['base']['graph']
         RES[param]['base']['num_cis'] = len(base_graph.frequentsDict().keys())
@@ -101,10 +101,10 @@ class TestThreshold:
         alg_graph = RES[param]['alg']['graph']
         error3, wrong_cis3, detected_cis3 = alg_graph.calc_error(base_graph)
 
-        RES[param]['alg']['time'] = (time1 + time2 + time3) / 3
-        RES[param]['alg']['error'] = (error1 + error2 + error3) / 3
-        RES[param]['alg']['wrong_cis'] = (wrong_cis1 + wrong_cis2 + wrong_cis3) / 3
-        RES[param]['alg']['detected_cis'] = (detected_cis1 + detected_cis2 + detected_cis3) / 3
+        RES[param]['alg']['time'] = (time1 + time2 + time3) / 3.0
+        RES[param]['alg']['error'] = (error1 + error2 + error3) / 3.0
+        RES[param]['alg']['wrong_cis'] = (wrong_cis1 + wrong_cis2 + wrong_cis3) / 3.0
+        RES[param]['alg']['detected_cis'] = (detected_cis1 + detected_cis2 + detected_cis3) / 3.0
 
     def test_xsmall(self):
         self._collect_results('xsmall', XSMALL_THRESHOLD)
