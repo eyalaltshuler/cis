@@ -17,7 +17,7 @@ def get_spark_context():
     c = [(k, v) for k, v in yaml.load(file("spark-s3.conf").read()).iteritems()]
     conf = pyspark.SparkConf()
     conf.setAll(c)
-    return pyspark.SparkContext('local[*]', conf=conf)
+    return pyspark.SparkContext(conf=conf)
 
 
 def sample(dataset, datasetSize, fraction):
