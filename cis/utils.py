@@ -115,16 +115,14 @@ def compare_itemset_lists(x, y):
 
 def convert_format(input_path, output_path):
     try:
-        sc = get_spark_context()
+        sc = pyspark.SparkContext()
         rdd = sc.newAPIHadoopFile(input_path,
                                   "org.apache.hadoop.mapreduce.lib.input.TextInputFormat",
                                   "org.apache.hadoop.io.Text",
                                   "org.apache.hadoop.io.LongWritable",
                                   conf={'textinputformat.record.delimiter': '---END.OF.DOCUMENT---'})
-        print 'before conversion- %d items in dataset' % rdd.count()
         rdd1 = rdd.map(lambda a: a[1].strip().split(" "))
         rdd2 = rdd1.map(lambda a: " ".join([str(hash(i)) for i in a]))
-        print 'after conversion - %d items in dataset' % rdd2.count()
         rdd2.saveAsTextFile(output_path)
     finally:
         sc.stop()
