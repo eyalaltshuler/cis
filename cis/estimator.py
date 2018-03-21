@@ -33,3 +33,14 @@ class Estimator(object):
                 if item_set.issubset(element):
                     yield (json.dumps(sorted(list(item_set))), [element, 1])
         return self._sample.flatMap(mapFunc).reduceByKey(lambda a, b: [a[0].intersection(b[0]), a[1] + b[1]])
+
+    def getSingletons(self):
+        return self._sample.flatMap(lambda x: x).distinct()
+
+    def estimate_commons(self, singletons, threshold):
+        def mapFunc(itemset):
+            for s in singletons:
+                if s in itemset:
+                    yield (s, 1)
+        return self._sample.flatMap(mapFunc).reduceByKey(lambda a,b: a + b).filter(lambda x: x[1] > threshold)\
+            .map(lambda x: x[0]).collect()
