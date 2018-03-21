@@ -15,11 +15,13 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
     data_set_rdd.cache()
     partitions_num = data_set_rdd.getNumPartitions()
     sample_size = _calculate_sample_size(threshold, data_set_size, epsilon, alpha) if randomized else data_set_size
-    collected_sample = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
+    collected_sample = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect() if randomized \
+        else data_set_rdd
     log.info('Using sample of size %d', sample_size)
     # sample = data_set_rdd.sample(False, float(sample_size) / data_set_size)
     # sample.cache()
-    data_estimator = estimator.Estimator(sc.parallelize(collected_sample))
+    data_estimator = estimator.Estimator(sc.parallelize(collected_sample)) if randomized \
+        else estimator.Estimator(data_set_rdd)
     scaled_threshold = float(threshold) * sample_size / data_set_size if randomized else threshold
     log.info('Estimating singletons frequencies')
     start = time.time()
