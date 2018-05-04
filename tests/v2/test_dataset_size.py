@@ -32,7 +32,7 @@ RES = None
 
 class TestDatasetSize:
 
-    def __init__(self):
+    def __init__(self, times):
         self._data_path = None
         self._num_machines = NUM_MACHINES
         self._sc = utils.get_spark_context()
@@ -61,22 +61,51 @@ class TestDatasetSize:
         global RES
         RES[param]['value'] = self._data_set_size
         self.reset()
-        RES[param]['base']['graph'], RES[param]['base']['time'] = run_base(self._sc, self._data_set_rdd, self._data_set_size,
-                                                                           THRESHOLD_RATIO * self._data_set_size, self._epsilon)
+        RES[param]['base']['time'] = 0
+        for i in range(self._times):
+            print 'running base - %d iteration' % i
+            RES[param]['base']['graph'], iter_running_time = run_base(self._sc, self._data_set_rdd, self._data_set_size,
+                                                                      THRESHOLD_RATIO * self._data_set_size, self._epsilon)
+            RES[param]['base']['time'] += iter_running_time
+        RES[param]['base']['time'] /= self._times
 
         self.reset()
-        RES[param]['spark']['graph'], RES[param]['spark']['time'] = run_spark(self._data_set_rdd, THRESHOLD_RATIO,
-                                                                              self._num_machines)
+        RES[param]['spark']['time'] = 0
+        RES[param]['spark']['sets_calc_time'] = 0
+        RES[param]['spark']['cis_collect_and_filter'] = 0
+        for i in range(self._times):
+            print 'running spark - %d iteration' % i
+            results, iter_running_time = run_spark(self._data_set_rdd, THRESHOLD_RATIO, self._num_machines)
+            RES[param]['spark']['time'] += iter_running_time
+            RES[param]['spark']['graph'] = results[0]
+            RES[param]['spark']['sets_calc_time'] += results[1]
+            RES[param]['spark']['cis_collect_and_filter'] += results[2]
+        RES[param]['spark']['time'] /= self._times
+        RES[param]['spark']['sets_calc_time'] /= self._times
+        RES[param]['spark']['cis_collect_and_filter'] /= self._times
 
         base_graph = RES[param]['base']['graph']
         RES[param]['base']['num_cis'] = len(base_graph.frequentsDict().keys())
         self.reset()
-        RES[param]['alg']['graph'], RES[param]['alg']['time'] = run_alg(self._sc, self._data_set_rdd, self._data_set_size,
-                                                                        THRESHOLD_RATIO * self._data_set_size, self._epsilon)
 
-        alg_graph = RES[param]['alg']['graph']
-        RES[param]['alg']['error'], RES[param]['alg']['wrong_cis'], RES[param]['alg']['detected_cis'] = \
-            alg_graph.calc_error(base_graph)
+        RES[param]['alg']['time'] = 0
+        RES[param]['alg']['not_identified'] = 0
+        RES[param]['alg']['approx_overhead'] = 0
+        RES[param]['alg']['approx_alpha_mean'] = 0
+        for i in range(self._times):
+            print 'runing alg - %d iteration' % i
+            RES[param]['alg']['graph'], iter_running_time = run_alg(self._sc, self._data_set_rdd, self._data_set_size,
+                                                                        THRESHOLD_RATIO * self._data_set_size, self._epsilon)
+            RES[param]['alg']['time'] += iter_running_time
+            alg_graph = RES[param]['alg']['graph']
+            results = alg_graph.calc_error(base_graph)
+            RES[param]['alg']['not_identified'] += results[0]
+            RES[param]['alg']['approx_overhead'] += results[1]
+            RES[param]['alg']['approx_alpha_mean'] += results[2]
+        RES[param]['alg']['time'] /= self._times
+        RES[param]['alg']['not_identified'] /= self._times
+        RES[param]['alg']['approx_overhead'] /= self._times
+        RES[param]['alg']['approx_alpha_mean'] /= self._times
 
     def test_xsmall(self):
         self._data_path = XSMALL_DS_PATH
@@ -165,8 +194,13 @@ def run_alg(sc, data_set_rdd, data_set_size, threshold, epsilon):
 
 
 if __name__=="__main__":
+    import sys
+    try:
+        times = int(sys.argv[1])
+    except:
+        times = 1
     print 'starting dataset size test and creating test class'
-    test = TestDatasetSize()
+    test = TestDatasetSize(times)
     print 'running xsmall test'
     test.test_xsmall()
     test.test_small()

@@ -3,6 +3,9 @@ import ast
 import sys
 import Queue
 import time
+import numpy as np
+import json
+
 from itertools import combinations
 
 SYS_RECURESION_LIMIT = 10 ** 6
@@ -11,6 +14,7 @@ class Frequents(object):
     def __init__(self):
         self._singletons = []
         self._levels = []
+        self._all = []
 
     def print_level(self, i):
         if i >= len(self._levels):
@@ -21,8 +25,13 @@ class Frequents(object):
         print ",".join(res)
 
     def add_level(self, item_set_list):
-        self._levels.append([Node(itemset, frequency) for itemset, frequency in item_set_list])
+        new_level = [Node(itemset, frequency) for itemset, frequency in item_set_list]
+        self._levels.append(new_level)
+        self._all += new_level
         self._topLevel = self._levels[-1]
+
+    def get_all(self):
+        return self._all
 
     def _add_level(self, item_set_list):
         top_level_nodes = self._topLevel
@@ -112,23 +121,36 @@ class Frequents(object):
             res = cPickle.loads(f.read())
         return res
 
-    def calc_error(self, exactLattice):
-        errors = []
+    def _find_frequency(self, h, results):
+        res = [(set(json.loads(k)), v) for k, v in results.iteritems()]
+        itemset = set(json.loads(h))
+        frequency = 10 ** 9  # initial value
+        for i in res:
+            if i[0].issubset(itemset):
+                frequency = min(frequency, i[1])
+        return frequency
+
+    def calc_error(self, exacts, alpha=0.01):
+        res = []
         wrong_cis_num = 0
         detected_cis_num = 0
-        cache = set()
-        for key, freq in self.frequentsDict().iteritems():
-            h = hash(str(sorted(list(freq[0]))))
-            if h not in cache:
-                cache.add(h)
-                if key not in exactLattice.frequentsDict().keys():
-                    wrong_cis_num += 1
-                    continue
-                detected_cis_num += 1
-                approx_freq = freq[1]
-                exact_freq = exactLattice.frequentsDict()[key][1]
-                errors.append(abs(float(exact_freq - approx_freq)) / exact_freq)
-        return sum(errors) / len(errors), wrong_cis_num, float(detected_cis_num) / len(self.frequentsDict().keys())
+        exact_keys = exacts.result.keys()
+        approximated_keys = self.result.keys()
+        freq_not_identified = 0.0
+        approximated_keys_sets = [set(json.loads(i)) for i in exact_keys]
+        for s in exact_keys:
+            if s not in approximated_keys:
+                set_s = set(json.loads(s))
+                if any([set_s.issubset(y) for y in approximated_keys_sets]):
+                    freq_not_identified += 1
+        for h, freq in self.result.iteritems():
+            approx_freq = freq
+            if h not in exact_keys:
+                exact_freq = self._find_frequency(h, exacts.result)
+            else:
+                exact_freq = exacts.result[h]
+            res.append(float(approx_freq) / exact_freq)
+        return freq_not_identified / len(exact_keys), len(approximated_keys) / float(len(exact_keys) - freq_not_identified), np.average(res)
 
 
     def iterate_over_subsets(self):

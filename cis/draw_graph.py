@@ -49,43 +49,43 @@ def time_graph(res, f_name):
           "Alpha values", "Time (secs)", "Running time as a function of alpha values", "%s.time" % f_name, legend=True)
 
 
-def error_graph(res, f_name):
+def freq_not_identified_graph(res, f_name):
     print 'calculate x values'
     x_axis = [res[k]['value'] for k in KEYS]
     print 'calculate y values for alg'
-    y_error_alg = get_y_values(res, 'alg', 'error')
+    y_error_alg = get_y_values(res, 'alg', 'not_identified')
     graph(x_axis, [y_error_alg], "Alpha values", "Error value",
-          "Error as a function of alpha values", "%s.error" % f_name)
+          "freq not identified as a function of alpha values", "%s.not_identified" % f_name)
 
 
-def wrong_cis_graph(res, f_name):
+def approx_overhead_graph(res, f_name):
     print 'caluclate x values'
     x_axis = [res[k]['value'] for k in KEYS]
     print 'calculate y values for alg'
-    y_error_alg = get_y_values(res, 'alg', 'wrong_cis')
-    graph(x_axis, [y_error_alg], "Alpha values", "Wrong number of CIS",
-          "Wrong cis as a function of alpha values", "%s.wrong_cis" %f_name)
+    y_error_alg = get_y_values(res, 'alg', 'approx_overhead')
+    graph(x_axis, [y_error_alg], "Alpha values", "Approximation overhead",
+          "approximation overhead as a function of alpha values", "%s.approx_overhead" % f_name)
 
 
-def detected_cis_graph(res, f_name):
+def mean_alpha_graph(res, f_name):
     print 'caluclate x values'
     x_axis = [res[k]['value'] for k in KEYS]
     print 'calculate y values for alg'
-    y_error_alg = get_y_values(res, 'alg', 'detected_cis')
-    graph(x_axis, [y_error_alg], "Alpha values", "number of detected CIS",
-          "Detected cis as a function of alpha values", "%s.detected_cis" %f_name)
+    y_error_alg = get_y_values(res, 'alg', 'approx_alpha_mean')
+    graph(x_axis, [y_error_alg], "Alpha values", "approx_alpha_mean",
+          "mean alpha as a function of alpha values", "%s.mean_alpha" % f_name)
 
 
 def load_and_draw_graphs(f_name):
     res = pickle.loads(file(f_name).read())
     print 'generating time graphs'
     time_graph(res, f_name)
-    print 'generating error grpahs'
-    error_graph(res, f_name)
+    print 'generating freq not identified grpahs'
+    freq_not_identified_graph(res, f_name)
     print 'generating wrong cis graphs'
-    wrong_cis_graph(res, f_name)
+    approx_overhead_graph(res, f_name)
     print 'generating correct cis graphs'
-    detected_cis_graph(res, f_name)
+    mean_alpha_graph(res, f_name)
 
 
 def scan(input_dir):

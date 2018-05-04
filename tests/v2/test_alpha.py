@@ -9,14 +9,14 @@ from cis import utils
 
 
 XSMALL_ALPHA = 0.01
-SMALL_ALPHA = 0.05
-MEDUIM_ALPHA = 0.1
-LARGE_ALPHA = 0.2
-XLARGE_ALPHA = 0.3
+SMALL_ALPHA = 0.02
+MEDUIM_ALPHA = 0.03
+LARGE_ALPHA = 0.04
+XLARGE_ALPHA = 0.05
 
-DATA_SET_NAME = 'dataset-single-wiki'
-THRESHOLD_RATIO = 0.7
-DATA_PATH = "data/single-wiki.txt"
+DATA_SET_NAME = 'dataset-single-news'
+THRESHOLD_RATIO = 0.9
+DATA_PATH = "data/single-news-sample"
 NUM_MACHINES = 4
 
 DATE = time.strftime("%x").replace("/", "_")
@@ -29,7 +29,8 @@ RES = None
 
 class TestAlpha:
 
-    def __init__(self):
+    def __init__(self, times):
+        self._times = times
         self._data_path = DATA_PATH
         self._num_machines = NUM_MACHINES
         self._sc = None
@@ -62,24 +63,54 @@ class TestAlpha:
     def _collect_results(self, param, alpha):
         global RES
         RES[param]['value'] = alpha
-        self.reset()
-        RES[param]['base']['graph'], RES[param]['base']['time'] = run_base(self._sc, self._data_set_rdd,
-                                                                           self._data_set_size,
-                                                                           self._threshold, self._epsilon, alpha=alpha)
 
         self.reset()
-        RES[param]['spark']['graph'], RES[param]['spark']['time'] = run_spark(self._data_set_rdd, THRESHOLD_RATIO,
-                                                                              self._num_machines)
-        self.reset()
+        RES[param]['base']['time'] = 0
+        for i in range(self._times):
+            print 'running base - %d iteration' % i
+            RES[param]['base']['graph'], iter_running_time = run_base(self._sc, self._data_set_rdd,
+                                                                      self._data_set_size,
+                                                                      self._threshold, self._epsilon, alpha=alpha)
+            RES[param]['base']['time'] += iter_running_time
+        RES[param]['base']['time'] /= self._times
 
+        self.reset()
+        RES[param]['spark']['time'] = 0
+        RES[param]['spark']['sets_calc_time'] = 0
+        RES[param]['spark']['cis_collect_and_filter'] = 0
+        for i in range(self._times):
+            print 'running spark - %d iteration' % i
+            results, iter_running_time = run_spark(self._data_set_rdd, THRESHOLD_RATIO, self._num_machines)
+            RES[param]['spark']['time'] += iter_running_time
+            RES[param]['spark']['graph'] = results[0]
+            RES[param]['spark']['sets_calc_time'] += results[1]
+            RES[param]['spark']['cis_collect_and_filter'] += results[2]
+        RES[param]['spark']['time'] /= self._times
+        RES[param]['spark']['sets_calc_time'] /= self._times
+        RES[param]['spark']['cis_collect_and_filter'] /= self._times
+
+        self.reset()
         base_graph = RES[param]['base']['graph']
         RES[param]['base']['num_cis'] = len(base_graph.frequentsDict().keys())
 
-        RES[param]['alg']['graph'], RES[param]['alg']['time'] = run_alg(self._sc, self._data_set_rdd, self._data_set_size,
-                                                                        self._threshold, self._epsilon, alpha=alpha)
-        alg_graph = RES[param]['alg']['graph']
-        RES[param]['alg']['error'], RES[param]['alg']['wrong_cis'], RES[param]['alg']['detected_cis'] = \
-            alg_graph.calc_error(base_graph)
+        RES[param]['alg']['time'] = 0
+        RES[param]['alg']['not_identified'] = 0
+        RES[param]['alg']['approx_overhead'] = 0
+        RES[param]['alg']['approx_alpha_mean'] = 0
+        for i in range(self._times):
+            print 'runing alg - %d iteration' % i
+            RES[param]['alg']['graph'], iter_running_time = run_alg(self._sc, self._data_set_rdd, self._data_set_size,
+                                                                    self._threshold, self._epsilon, alpha=alpha)
+            RES[param]['alg']['time'] += iter_running_time
+            alg_graph = RES[param]['alg']['graph']
+            results = alg_graph.calc_error(base_graph, alpha)
+            RES[param]['alg']['not_identified'] += results[0]
+            RES[param]['alg']['approx_overhead'] += results[1]
+            RES[param]['alg']['approx_alpha_mean'] += results[2]
+        RES[param]['alg']['time'] /= self._times
+        RES[param]['alg']['not_identified'] /= self._times
+        RES[param]['alg']['approx_overhead'] /= self._times
+        RES[param]['alg']['approx_alpha_mean'] /= self._times
 
     def test_xsmall(self):
         self._collect_results('xsmall', XSMALL_ALPHA)
@@ -103,6 +134,7 @@ class TestAlpha:
         self._data_set_rdd = self._get_dataset_rdd()
         self._data_set_rdd.cache()
         self._data_set_size = self._data_set_rdd.count()
+        print 'num transactions in data - %d' % self._data_set_size
         self._threshold = THRESHOLD_RATIO * self._data_set_size
 
     def finish(self):
@@ -148,8 +180,13 @@ def run_alg(sc, data_set_rdd, data_set_size, threshold, epsilon, alpha=0.1):
 
 
 if __name__ == "__main__":
+    import sys
+    try:
+        times = int(sys.argv[1])
+    except:
+        times = 1
     print 'starting alpha test and creating test class'
-    test = TestAlpha()
+    test = TestAlpha(times)
     print 'running xsmall test'
     test.test_xsmall()
     print 'running small test'

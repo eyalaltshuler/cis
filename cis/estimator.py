@@ -34,6 +34,13 @@ class Estimator(object):
                     yield (json.dumps(sorted(list(item_set))), [element, 1])
         return self._sample.flatMap(mapFunc).reduceByKey(lambda a, b: [a[0].intersection(b[0]), a[1] + b[1]])
 
+    def compute(self, itemset_list):
+        def mapFunc(element):
+            for item_set in itemset_list:
+                if item_set.issubset(element):
+                    yield (json.dumps(sorted(list(item_set))), 1)
+        return self._sample.flatMap(mapFunc).reduceByKey(lambda a, b: a + b)
+
     def getSingletons(self):
         return self._sample.flatMap(lambda x: x).distinct()
 

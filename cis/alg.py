@@ -1,7 +1,7 @@
 import utils
 import frequents
 import pyspark
-import estimator
+from estimator import Estimator
 import logging
 import time
 import json
@@ -17,13 +17,14 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
     sample_size = _calculate_sample_size(threshold, data_set_size, epsilon, alpha)
     collected_sample = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
     log.info('Using sample of size %d', sample_size)
+    print 'Using sample of size %d' % sample_size
     # sample = data_set_rdd.sample(False, float(sample_size) / data_set_size)
     # sample.cache()
     scaled_threshold = float(threshold) * sample_size / data_set_size if randomized else threshold
     frequencies = _countElements(collected_sample, float(threshold) * sample_size / data_set_size)
     common_elements = frequencies.keys()
-    data_estimator = estimator.Estimator(sc.parallelize(collected_sample)) if randomized \
-        else estimator.Estimator(data_set_rdd)
+    data_estimator = Estimator(sc.parallelize(collected_sample)) if randomized \
+        else Estimator(data_set_rdd)
 
     # log.info('Estimating singletons frequencies')
     # start = time.time()
@@ -39,12 +40,14 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
     # common_cached = data_estimator.estimate_commons(singletons.collect(), scaled_threshold)
     candidates = [set([i]) for i in common_elements]
     iteration = 1
+    scaling_factor = data_set_size / sample_size if randomized else 1.0
 
     while candidates:
         log.info('Iteration %d starts. candidates set size is %d', iteration, len(candidates))
         log.info('Starting Estimating and filtering. There are %d candidates', len(candidates))
         start = time.time()
-        next_level = data_estimator.estimate(candidates).filter(lambda pair: pair[1][1] >= scaled_threshold).map(lambda x: (x[1][0], x[1][1] * data_set_size / scaled_threshold))
+
+        next_level = data_estimator.estimate(candidates).filter(lambda pair: pair[1][1] >= scaled_threshold).map(lambda x: (x[1][0], int(x[1][1] * scaling_factor)))
         next_level.cache()
         cis_next_level = next_level.collect()
         end = time.time()
@@ -66,6 +69,16 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
 
         iteration += 1
 
+    if not randomized:
+        cis_tree.result = [(itemset.items, itemset.frequency) for itemset in cis_tree.get_all()]
+        cis_tree.result = {str(sorted(list(i[0]))): i[1] for i in cis_tree.result}
+        return cis_tree
+    # return cis_tree
+
+    estimator = Estimator(data_set_rdd)
+    final_itemsets = [itemset.items for itemset in cis_tree.get_all()]
+    cis_tree.result = estimator.compute(final_itemsets).collect()
+    cis_tree.result = {str(sorted(list(json.loads(i[0])))): i[1] for i in cis_tree.result}
     return cis_tree
 
 
@@ -81,9 +94,11 @@ def _expand(level, common_elements, partitions_num):
 
 DELTA = 0.1
 
-
 def _calculate_sample_size(_threshold, _data_set_size, _epsilon, alpha=0.01):
     return int(math.ceil((math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) * DELTA ** 2 * _threshold)))
+
+def _calculate_sample_size_2(_threshold, _data_set_size, _epsilon, alpha=0.01):
+    return int(math.ceil((math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) ** 2 * _threshold)))
 
 
 def _assign_tasks(candidate_to_workers, num_of_workers):
