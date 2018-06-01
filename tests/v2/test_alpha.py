@@ -8,15 +8,15 @@ from cis import algfpgrowth
 from cis import utils
 
 
-XSMALL_ALPHA = 0.01
-SMALL_ALPHA = 0.02
-MEDUIM_ALPHA = 0.03
-LARGE_ALPHA = 0.04
-XLARGE_ALPHA = 0.05
+XSMALL_ALPHA = 0.00001
+SMALL_ALPHA = 0.0001
+MEDUIM_ALPHA = 0.001
+LARGE_ALPHA = 0.01
+XLARGE_ALPHA = 0.1
 
-DATA_SET_NAME = 'dataset-single-news'
-THRESHOLD_RATIO = 0.9
-DATA_PATH = "data/single-news-sample"
+DATA_SET_NAME = 'dataset-single-wiki'
+THRESHOLD_RATIO = 0.7
+DATA_PATH = "data/single-wiki.txt"
 NUM_MACHINES = 4
 
 DATE = time.strftime("%x").replace("/", "_")
@@ -39,7 +39,7 @@ class TestAlpha:
         # self._data_set_rdd.cache()
         # self._data_set_size = self._data_set_rdd.count()
         # self._threshold = THRESHOLD_RATIO * self._data_set_size
-        self._epsilon = 0.1
+        self._epsilon = 0.001
         if not os.path.exists("results/%s" % DATA_SET_NAME):
             os.mkdir("results/%s" % DATA_SET_NAME)
         if not os.path.exists(TEST_DIR):
@@ -55,6 +55,7 @@ class TestAlpha:
     def _get_dataset_rdd(self):
         lines_rdd = self._sc.textFile(self._data_path, self._num_machines)
         dataset_rdd = lines_rdd.map(lambda x: set([hash(i) for i in x.split(" ")]))
+        dataset_rdd = dataset_rdd.repartition(self._num_machines)
         return dataset_rdd
 
     def _init_res_dict(self):

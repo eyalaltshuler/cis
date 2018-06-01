@@ -10,15 +10,14 @@ from cis import algfpgrowth
 from cis import utils
 
 
-XSMALL_THRESHOLD = 0.5
-SMALL_THRESHOLD = 0.6
+XSMALL_THRESHOLD = 0.6
+SMALL_THRESHOLD = 0.65
 MEDUIM_THRESHOLD = 0.7
-LARGE_THRESHOLD = 0.8
-XLARGE_THRESHOLD = 0.9
+LARGE_THRESHOLD = 0.75
+XLARGE_THRESHOLD = 0.8
 
-DATA_SET_NAME = 'dataset-single-news'
-THRESHOLD_RATIO = 0.9
-DATA_PATH = "data/single-news/"
+DATA_SET_NAME = 'dataset-single-wiki'
+DATA_PATH = "data/single-wiki.txt"
 NUM_MACHINES = 4
 
 DATE = time.strftime("%x").replace("/", "_")
@@ -32,6 +31,7 @@ RES = None
 class TestThreshold:
 
     def __init__(self, times):
+        self._times = times
         self._data_path = DATA_PATH
         self._num_machines = NUM_MACHINES
         self._sc = utils.get_spark_context()

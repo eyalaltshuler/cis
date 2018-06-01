@@ -14,10 +14,11 @@ log = logging.getLogger()
 def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, alpha=0.01):
     data_set_rdd.cache()
     partitions_num = data_set_rdd.getNumPartitions()
-    sample_size = _calculate_sample_size(threshold, data_set_size, epsilon, alpha)
+    sample_size = _calculate_sample_size_2(threshold, data_set_size, epsilon, alpha)
     collected_sample = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
     log.info('Using sample of size %d', sample_size)
     print 'Using sample of size %d' % sample_size
+    print 'ratio - %f' % (float(sample_size) / data_set_size)
     # sample = data_set_rdd.sample(False, float(sample_size) / data_set_size)
     # sample.cache()
     scaled_threshold = float(threshold) * sample_size / data_set_size if randomized else threshold
@@ -94,11 +95,13 @@ def _expand(level, common_elements, partitions_num):
 
 DELTA = 0.1
 
+
 def _calculate_sample_size(_threshold, _data_set_size, _epsilon, alpha=0.01):
-    return int(math.ceil((math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) * DELTA ** 2 * _threshold)))
+    return 2.0 * int(math.ceil((math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) * DELTA ** 2 * _threshold)))
+
 
 def _calculate_sample_size_2(_threshold, _data_set_size, _epsilon, alpha=0.01):
-    return int(math.ceil((math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) ** 2 * _threshold)))
+    return int(math.ceil(5.0 *  (math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) ** 2 * _threshold)))
 
 
 def _assign_tasks(candidate_to_workers, num_of_workers):

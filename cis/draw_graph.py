@@ -21,6 +21,7 @@ def graph(x, y, xlabel, ylabel, title, output_name, legend=False):
             plt.plot(x, value[0], label=value[1])
         else:
             plt.plot(x, value)
+    plt.xscale('log')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)

@@ -10,15 +10,15 @@ from cis import algfpgrowth
 from cis import utils
 
 
-XSMALL_EPSILON = 0.001
-SMALL_EPSILON = 0.01
-MEDUIM_EPSILON = 0.05
-LARGE_EPSILON = 0.1
-XLARGE_EPSILON = 0.3
+XSMALL_EPSILON = 0.00001
+SMALL_EPSILON = 0.0001
+MEDUIM_EPSILON = 0.001
+LARGE_EPSILON = 0.01
+XLARGE_EPSILON = 0.1
 
-DATA_SET_NAME = 'dataset-single-news'
-THRESHOLD_RATIO = 0.9
-DATA_PATH = "data/single-news/"
+DATA_SET_NAME = 'dataset-single-wiki'
+THRESHOLD_RATIO = 0.7
+DATA_PATH = "data/single-wiki.txt"
 NUM_MACHINES = 4
 
 DATE = time.strftime("%x").replace("/", "_")
@@ -31,6 +31,7 @@ RES = None
 class TestEpsilon:
 
     def __init__(self, times):
+        self._times = times
         self._data_path = DATA_PATH
         self._num_machines = NUM_MACHINES
         self._sc = utils.get_spark_context()
@@ -97,6 +98,7 @@ class TestEpsilon:
 
         base_graph = RES[param]['base']['graph']
         RES[param]['base']['num_cis'] = len(base_graph.frequentsDict().keys())
+
         self.reset()
         RES[param]['alg']['time'] = 0
         RES[param]['alg']['not_identified'] = 0

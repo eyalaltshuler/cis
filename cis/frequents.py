@@ -135,6 +135,10 @@ class Frequents(object):
         wrong_cis_num = 0
         detected_cis_num = 0
         exact_keys = exacts.result.keys()
+        if len(exact_keys) == 0:
+            import ipdb
+            ipdb.set_trace()
+
         approximated_keys = self.result.keys()
         freq_not_identified = 0.0
         approximated_keys_sets = [set(json.loads(i)) for i in exact_keys]
@@ -149,7 +153,7 @@ class Frequents(object):
                 exact_freq = self._find_frequency(h, exacts.result)
             else:
                 exact_freq = exacts.result[h]
-            res.append(float(approx_freq) / exact_freq)
+            res.append(min(float(approx_freq) / exact_freq, 1.0))
         return freq_not_identified / len(exact_keys), len(approximated_keys) / float(len(exact_keys) - freq_not_identified), np.average(res)
 
 
