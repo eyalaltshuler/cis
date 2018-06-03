@@ -41,9 +41,9 @@ def time_graph(res, f_name):
     print 'calculate x values'
     x_axis = [res[k]['value'] for k in KEYS]
     print 'calculate y values for base'
-    y_time_base = get_y_values(res, 'base', 'time')
+    y_time_base = [res['base']['time']] * len(x_axis)
     print 'calculate y values for spark'
-    y_time_spark = get_y_values(res, 'spark', 'time')
+    y_time_spark = [res['spark']['time']] * len(x_axis)
     print 'calculate y values for alg'
     y_time_alg = get_y_values(res, 'alg', 'time')
     graph(x_axis, [(y_time_base, "Base algorithm"), (y_time_spark, "spark algorithm"), (y_time_alg, "Our algorithm")],

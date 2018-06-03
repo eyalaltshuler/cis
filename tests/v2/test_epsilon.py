@@ -50,7 +50,9 @@ class TestEpsilon:
                    'small': self._init_res_dict(),
                    'medium': self._init_res_dict(),
                    'large': self._init_res_dict(),
-                   'xlarge': self._init_res_dict()}
+                   'xlarge': self._init_res_dict(),
+                   'base': {},
+                   'spark': {}}
 
     def reset(self):
         if self._sc:
@@ -67,38 +69,40 @@ class TestEpsilon:
         return dataset_rdd
 
     def _init_res_dict(self):
-        return {'alg': {}, 'base': {}, 'spark': {}}
+        return {'alg': {}, }
 
-    def _collect_results(self, param, epsilon):
+    def run_base(self, _times=1):
         global RES
-        RES[param]['value'] = epsilon
         self.reset()
-        RES[param]['base']['time'] = 0
-        for i in range(self._times):
+        RES['base']['time'] = 0
+        for i in range(_times):
             print 'running base - %d iteration' % i
-            RES[param]['base']['graph'], iter_running_time = run_base(self._sc, self._data_set_rdd, self._data_set_size,
-                                                                      self._threshold, epsilon)
-            RES[param]['base']['time'] += iter_running_time
-        RES[param]['base']['time'] /= self._times
+            RES['base']['graph'], iter_running_time = run_base(self._sc, self._data_set_rdd, self._data_set_size,
+                                                               self._threshold)
+            RES['base']['time'] += iter_running_time
+        RES['base']['time'] /= self._times
 
+    def run_spark(self, _times=1):
+        global RES
         self.reset()
-        RES[param]['spark']['time'] = 0
-        RES[param]['spark']['sets_calc_time'] = 0
-        RES[param]['spark']['cis_collect_and_filter'] = 0
-        for i in range(self._times):
+        RES['spark']['time'] = 0
+        RES['spark']['sets_calc_time'] = 0
+        RES['spark']['cis_collect_and_filter'] = 0
+        for i in range(_times):
             print 'running spark - %d iteration' % i
             results, iter_running_time = run_spark(self._data_set_rdd, THRESHOLD_RATIO, self._num_machines)
-            RES[param]['spark']['time'] += iter_running_time
-            RES[param]['spark']['graph'] = results[0]
-            RES[param]['spark']['sets_calc_time'] += results[1]
-            RES[param]['spark']['cis_collect_and_filter'] += results[2]
-        RES[param]['spark']['time'] /= self._times
-        RES[param]['spark']['sets_calc_time'] /= self._times
-        RES[param]['spark']['cis_collect_and_filter'] /= self._times
+            RES['spark']['time'] += iter_running_time
+            RES['spark']['graph'] = results[0]
+            RES['spark']['sets_calc_time'] += results[1]
+            RES['spark']['cis_collect_and_filter'] += results[2]
+        RES['spark']['time'] /= self._times
+        RES['spark']['sets_calc_time'] /= self._times
+        RES['spark']['cis_collect_and_filter'] /= self._times
 
-        base_graph = RES[param]['base']['graph']
-        RES[param]['base']['num_cis'] = len(base_graph.frequentsDict().keys())
-
+    def _collect_results(self, param, epsilon):
+        RES[param]['value'] = epsilon
+        base_graph = RES['base']['graph']
+        RES['base']['num_cis'] = len(base_graph.frequentsDict().keys())
         self.reset()
         RES[param]['alg']['time'] = 0
         RES[param]['alg']['not_identified'] = 0
@@ -107,7 +111,7 @@ class TestEpsilon:
         for i in range(self._times):
             print 'runing alg - %d iteration' % i
             RES[param]['alg']['graph'], iter_running_time = run_alg(self._sc, self._data_set_rdd, self._data_set_size,
-                                                                        self._threshold, epsilon)
+                                                                    self._threshold, epsilon)
             RES[param]['alg']['time'] += iter_running_time
             alg_graph = RES[param]['alg']['graph']
             results = alg_graph.calc_error(base_graph)
@@ -162,7 +166,7 @@ def measure_time(test):
 
 
 @measure_time
-def run_base(sc, data_set_rdd, data_set_size, threshold, epsilon):
+def run_base(sc, data_set_rdd, data_set_size, threshold, epsilon=0.1):
     return alg.alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=False)
 
 
@@ -184,6 +188,10 @@ if __name__=="__main__":
         times = 1
     print 'starting epsilon test and creating test class'
     test = TestEpsilon(times)
+    print 'running base algorithm'
+    test.run_base()
+    print 'running spark algorithm'
+    test.run_spark()
     print 'running xsmall test'
     test.test_xsmall()
     print 'running small test'

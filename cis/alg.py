@@ -16,13 +16,15 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
     partitions_num = data_set_rdd.getNumPartitions()
     sample_size = _calculate_sample_size_2(threshold, data_set_size, epsilon, alpha)
     collected_sample = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
+    singles_sample_size = 0.05 * data_set_size
+    singles_sample = data_set_rdd.sample(False, float(singles_sample_size) / data_set_size).collect()
     log.info('Using sample of size %d', sample_size)
     print 'Using sample of size %d' % sample_size
     print 'ratio - %f' % (float(sample_size) / data_set_size)
     # sample = data_set_rdd.sample(False, float(sample_size) / data_set_size)
     # sample.cache()
     scaled_threshold = float(threshold) * sample_size / data_set_size if randomized else threshold
-    frequencies = _countElements(collected_sample, float(threshold) * sample_size / data_set_size)
+    frequencies = _countElements(singles_sample, float(threshold) * sample_size / data_set_size)
     common_elements = frequencies.keys()
     data_estimator = Estimator(sc.parallelize(collected_sample)) if randomized \
         else Estimator(data_set_rdd)
