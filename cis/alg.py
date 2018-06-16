@@ -28,12 +28,16 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
     common_elements1 = set(frequencies1.keys())
     frequencies2 = _countElements(collected_sample2, float(threshold) * sample_size / data_set_size)
     common_elements2 = set(frequencies2.keys())
+    del collected_sample2
     frequencies3 = _countElements(collected_sample3, float(threshold) * sample_size / data_set_size)
     common_elements3 = set(frequencies3.keys())
+    del collected_sample3
     frequencies4 = _countElements(collected_sample4, float(threshold) * sample_size / data_set_size)
     common_elements4 = set(frequencies4.keys())
+    del collected_sample4
     frequencies5 = _countElements(collected_sample5, float(threshold) * sample_size / data_set_size)
     common_elements5 = set(frequencies5.keys())
+    del collected_sample5
     common_candidates = common_elements1.union(common_elements2).union(common_elements3).union(common_elements4).union(common_elements5)
     common_elements_set = set()
     for candidate in common_candidates:
