@@ -130,7 +130,7 @@ def _calculate_sample_size(_threshold, _data_set_size, _epsilon, alpha=0.01):
 
 
 def _calculate_sample_size_2(_threshold, _data_set_size, _epsilon, alpha=0.1):
-    return int(math.ceil(20 *  (math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) ** 2 * _threshold)))
+    return int(math.ceil(10 *  (math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) ** 2 * _threshold)))
 
 
 def _assign_tasks(candidate_to_workers, num_of_workers):
