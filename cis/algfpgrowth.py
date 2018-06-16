@@ -12,12 +12,16 @@ def alg_fp_growth(data_set_rdd, threshold, num_of_partitions):
     print 'Training took %s seconds' % itemsets_calculation_time
     start = time.time()
     result = model.freqItemsets().collect()
-    result = [(set(n.items), n.freq) for n in result]
-    result = filter(lambda x: isCis(result, x), result)
+    result = {str(sorted(list(set(n.items)))): (set(n.items), n.freq) for n in result}
+    result_copy = {k: v for k, v in result.iteritems()}
+    res = {}
+    for k, v in result.iteritems():
+        if isCis(result_copy, v):
+            res[k] = v
     end = time.time()
     collect_and_filter_time = end - start
     print 'Frequent itemsets collection and cis filter took %s seconds' % collect_and_filter_time
-    return result, itemsets_calculation_time, collect_and_filter_time
+    return res, itemsets_calculation_time, collect_and_filter_time
 
 
 def isCis(result, x):

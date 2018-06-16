@@ -10,11 +10,11 @@ from cis import algfpgrowth
 from cis import utils
 
 
-XSMALL_EPSILON = 0.00001
-SMALL_EPSILON = 0.0001
+XSMALL_EPSILON = 0.0001
+SMALL_EPSILON = 0.0005
 MEDUIM_EPSILON = 0.001
-LARGE_EPSILON = 0.01
-XLARGE_EPSILON = 0.1
+LARGE_EPSILON = 0.005
+XLARGE_EPSILON = 0.01
 
 DATA_SET_NAME = 'dataset-single-wiki'
 THRESHOLD_RATIO = 0.7
@@ -103,6 +103,7 @@ class TestEpsilon:
         RES[param]['value'] = epsilon
         base_graph = RES['base']['graph']
         RES['base']['num_cis'] = len(base_graph.frequentsDict().keys())
+        spark_graph = RES['spark']['graph']
         self.reset()
         RES[param]['alg']['time'] = 0
         RES[param]['alg']['not_identified'] = 0
@@ -114,7 +115,7 @@ class TestEpsilon:
                                                                     self._threshold, epsilon)
             RES[param]['alg']['time'] += iter_running_time
             alg_graph = RES[param]['alg']['graph']
-            results = alg_graph.calc_error(base_graph)
+            results = alg_graph.calc_error(spark_graph)
             RES[param]['alg']['not_identified'] += results[0]
             RES[param]['alg']['approx_overhead'] += results[1]
             RES[param]['alg']['approx_alpha_mean'] += results[2]

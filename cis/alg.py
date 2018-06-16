@@ -11,21 +11,48 @@ import math
 log = logging.getLogger()
 
 
-def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, alpha=0.01):
+def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, alpha=0.1):
     data_set_rdd.cache()
     partitions_num = data_set_rdd.getNumPartitions()
     sample_size = _calculate_sample_size_2(threshold, data_set_size, epsilon, alpha)
     collected_sample = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
-    singles_sample_size = 0.05 * data_set_size
-    singles_sample = data_set_rdd.sample(False, float(singles_sample_size) / data_set_size).collect()
+    collected_sample2 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
+    collected_sample3 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
+    collected_sample4 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
+    collected_sample5 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
     log.info('Using sample of size %d', sample_size)
     print 'Using sample of size %d' % sample_size
     print 'ratio - %f' % (float(sample_size) / data_set_size)
-    # sample = data_set_rdd.sample(False, float(sample_size) / data_set_size)
-    # sample.cache()
     scaled_threshold = float(threshold) * sample_size / data_set_size if randomized else threshold
-    frequencies = _countElements(singles_sample, float(threshold) * sample_size / data_set_size)
-    common_elements = frequencies.keys()
+    frequencies1 = _countElements(collected_sample, float(threshold) * sample_size / data_set_size)
+    common_elements1 = set(frequencies1.keys())
+    frequencies2 = _countElements(collected_sample2, float(threshold) * sample_size / data_set_size)
+    common_elements2 = set(frequencies2.keys())
+    frequencies3 = _countElements(collected_sample3, float(threshold) * sample_size / data_set_size)
+    common_elements3 = set(frequencies3.keys())
+    frequencies4 = _countElements(collected_sample4, float(threshold) * sample_size / data_set_size)
+    common_elements4 = set(frequencies4.keys())
+    frequencies5 = _countElements(collected_sample5, float(threshold) * sample_size / data_set_size)
+    common_elements5 = set(frequencies5.keys())
+    common_candidates = common_elements1.union(common_elements2).union(common_elements3).union(common_elements4).union(common_elements5)
+    common_elements_set = set()
+    for candidate in common_candidates:
+        i = 0
+        if candidate in common_elements1:
+            i += 1
+        if candidate in common_elements2:
+            i += 1
+        if candidate in common_elements3:
+            i += 1
+        if candidate in common_elements4:
+            i += 1
+        if candidate in common_elements5:
+            i += 1
+        if i >= 3:
+            common_elements_set.add(candidate)
+    # frequencies = _get_averages(frequencies1, frequencies2, frequencies3)
+    # common_elements = [k for k in frequencies.keys() if frequencies[k] >= float(threshold) * sample_size / data_set_size]
+    common_elements = list(common_elements_set)
     data_estimator = Estimator(sc.parallelize(collected_sample)) if randomized \
         else Estimator(data_set_rdd)
 
@@ -49,10 +76,10 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
         log.info('Iteration %d starts. candidates set size is %d', iteration, len(candidates))
         log.info('Starting Estimating and filtering. There are %d candidates', len(candidates))
         start = time.time()
-
-        next_level = data_estimator.estimate(candidates).filter(lambda pair: pair[1][1] >= scaled_threshold).map(lambda x: (x[1][0], int(x[1][1] * scaling_factor)))
+        next_level = data_estimator.estimate(candidates).filter(lambda pair: pair[1][1] >= scaled_threshold).map(lambda x: (x[1][0], int(min(x[1][1] * scaling_factor, data_set_size))))
         next_level.cache()
         cis_next_level = next_level.collect()
+        cis_next_level = filter(lambda x: x[0].issubset(common_elements_set), cis_next_level)
         end = time.time()
         log.info('Estimation and filter done in %d seconds. Filtering candidates', end - start)
         if not cis_next_level:
@@ -102,8 +129,8 @@ def _calculate_sample_size(_threshold, _data_set_size, _epsilon, alpha=0.01):
     return 2.0 * int(math.ceil((math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) * DELTA ** 2 * _threshold)))
 
 
-def _calculate_sample_size_2(_threshold, _data_set_size, _epsilon, alpha=0.01):
-    return int(math.ceil(5.0 *  (math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) ** 2 * _threshold)))
+def _calculate_sample_size_2(_threshold, _data_set_size, _epsilon, alpha=0.1):
+    return int(math.ceil(20 *  (math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) ** 2 * _threshold)))
 
 
 def _assign_tasks(candidate_to_workers, num_of_workers):
@@ -117,6 +144,31 @@ def _assign_tasks(candidate_to_workers, num_of_workers):
     return tasks
 
 
+def _get_averages(frequencies1, frequencies2, frequencies3):
+    res = {}
+    occurs = {}
+    for k in frequencies1.keys():
+        res[k] = frequencies1[k]
+        occurs[k] = 1
+
+    for k in frequencies2.keys():
+        x = frequencies2.get(k, 0)
+        res[k] = x + frequencies2[k]
+        t = occurs.get(k, 0)
+        occurs[k] = t + 1
+
+    for k in frequencies3.keys():
+        x = frequencies3.get(k, 0)
+        res[k] = x + frequencies3[k]
+        t = occurs.get(k, 0)
+        occurs[k] = t + 1
+
+    for i in res.keys():
+        res[i] = float(res[i]) / occurs[i]
+
+    return res
+
+
 def _countElements(dataset, threshold):
     # return {k: v for k, v in dataset.flatMap(lambda t: [(e,1) for e in t]).reduceByKey(lambda a,b: a+b).filter(lambda x: x[1] >= threshold).collect()}
     res = {}
@@ -127,6 +179,7 @@ def _countElements(dataset, threshold):
                 continue
             res[item] = 1
     return {k: v for k, v in res.iteritems() if v >= threshold}
+    # return res
 
 
 if __name__ == "__main__":
