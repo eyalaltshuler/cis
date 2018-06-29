@@ -18,8 +18,8 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
     collected_sample = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
     collected_sample2 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
     collected_sample3 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
-    collected_sample4 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
-    collected_sample5 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
+    # collected_sample4 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
+    # collected_sample5 = data_set_rdd.sample(False, float(sample_size) / data_set_size).collect()
     log.info('Using sample of size %d', sample_size)
     print 'Using sample of size %d' % sample_size
     print 'ratio - %f' % (float(sample_size) / data_set_size)
@@ -32,13 +32,13 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
     frequencies3 = _countElements(collected_sample3, float(threshold) * sample_size / data_set_size)
     common_elements3 = set(frequencies3.keys())
     del collected_sample3
-    frequencies4 = _countElements(collected_sample4, float(threshold) * sample_size / data_set_size)
-    common_elements4 = set(frequencies4.keys())
-    del collected_sample4
-    frequencies5 = _countElements(collected_sample5, float(threshold) * sample_size / data_set_size)
-    common_elements5 = set(frequencies5.keys())
-    del collected_sample5
-    common_candidates = common_elements1.union(common_elements2).union(common_elements3).union(common_elements4).union(common_elements5)
+    # frequencies4 = _countElements(collected_sample4, float(threshold) * sample_size / data_set_size)
+    # common_elements4 = set(frequencies4.keys())
+    # del collected_sample4
+    # frequencies5 = _countElements(collected_sample5, float(threshold) * sample_size / data_set_size)
+    # common_elements5 = set(frequencies5.keys())
+    # del collected_sample5
+    common_candidates = common_elements1.union(common_elements2).union(common_elements3)#.union(common_elements4).union(common_elements5)
     common_elements_set = set()
     for candidate in common_candidates:
         i = 0
@@ -48,11 +48,11 @@ def alg(sc, data_set_rdd, data_set_size, threshold, epsilon, randomized=True, al
             i += 1
         if candidate in common_elements3:
             i += 1
-        if candidate in common_elements4:
-            i += 1
-        if candidate in common_elements5:
-            i += 1
-        if i >= 3:
+        # if candidate in common_elements4:
+        #     i += 1
+        # if candidate in common_elements5:
+        #     i += 1
+        if i >= 2:
             common_elements_set.add(candidate)
     # frequencies = _get_averages(frequencies1, frequencies2, frequencies3)
     # common_elements = [k for k in frequencies.keys() if frequencies[k] >= float(threshold) * sample_size / data_set_size]
@@ -134,7 +134,7 @@ def _calculate_sample_size(_threshold, _data_set_size, _epsilon, alpha=0.01):
 
 
 def _calculate_sample_size_2(_threshold, _data_set_size, _epsilon, alpha=0.1):
-    return int(math.ceil(10 *  (math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) ** 2 * _threshold)))
+    return int(math.ceil(5 *  (math.log(1 / _epsilon) * 2 * _data_set_size) / ((1 - alpha) ** 2 * _threshold)))
 
 
 def _assign_tasks(candidate_to_workers, num_of_workers):
