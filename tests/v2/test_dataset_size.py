@@ -10,9 +10,9 @@ from cis import algfpgrowth
 from cis import utils
 
 
-DATA_SET_NAME = 'dataset-single-news'
-THRESHOLD_RATIO = 0.9
-DATA_PATH = "data/single-news/"
+DATA_SET_NAME = 'dataset-wiki'
+THRESHOLD_RATIO = 0.7
+DATA_PATH = "data/wiki"
 NUM_MACHINES = 4
 
 DATE = time.strftime("%x").replace("/", "_")
@@ -33,6 +33,7 @@ RES = None
 class TestDatasetSize:
 
     def __init__(self, times):
+        self._times = times
         self._data_path = None
         self._num_machines = NUM_MACHINES
         self._sc = utils.get_spark_context()
@@ -98,7 +99,8 @@ class TestDatasetSize:
                                                                         THRESHOLD_RATIO * self._data_set_size, self._epsilon)
             RES[param]['alg']['time'] += iter_running_time
             alg_graph = RES[param]['alg']['graph']
-            results = alg_graph.calc_error(base_graph)
+            spark_graph = RES[param]['spark']['graph']
+            results = alg_graph.calc_error(spark_graph)
             RES[param]['alg']['not_identified'] += results[0]
             RES[param]['alg']['approx_overhead'] += results[1]
             RES[param]['alg']['approx_alpha_mean'] += results[2]

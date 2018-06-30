@@ -17,8 +17,8 @@ LARGE_THRESHOLD = 0.75
 XLARGE_THRESHOLD = 0.8
 
 DATA_SET_NAME = 'dataset-single-wiki'
-DATA_PATH = "cis-1-wiki"
-NUM_MACHINES = 64
+DATA_PATH = "data/single-wiki.txt"
+NUM_MACHINES = 4
 
 DATE = time.strftime("%x").replace("/", "_")
 TIME = time.strftime("%X").replace(":", "_")
@@ -99,7 +99,7 @@ class TestThreshold:
                                                                     threshold * self._data_set_size, self._epsilon)
             RES[param]['alg']['time'] += iter_running_time
             alg_graph = RES[param]['alg']['graph']
-            spark_graph = RES['spark']['graph']
+            spark_graph = RES[param]['spark']['graph']
             results = alg_graph.calc_error(spark_graph)
             RES[param]['alg']['not_identified'] += results[0]
             RES[param]['alg']['approx_overhead'] += results[1]
