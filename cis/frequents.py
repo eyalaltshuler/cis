@@ -150,8 +150,8 @@ class Frequents(object):
                 exact_freq = self._find_frequency(h, exacts)
             else:
                 exact_freq = exacts[h][1]
-            res.append(min(float(approx_freq) / exact_freq, 1.0))
-        return freq_not_identified / len(exact_keys), len(approximated_keys) / float(len(exact_keys) - freq_not_identified), np.average(res)
+            res.append(float(approx_freq) / exact_freq)
+        return freq_not_identified / len(exact_keys), len(approximated_keys) / float(len(exact_keys)), np.average(res)
 
 
     def iterate_over_subsets(self):
